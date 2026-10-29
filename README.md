@@ -1,6 +1,8 @@
-# Meridian — the daily trivia championship
+# Meridian — quick trivia for everyone
 
-**Win the day.** A trivia competition that resets every midnight. Each run is sixty seconds, sunrise to sunset, and you get three seconds per question. The timer is drawn as a moon eclipsing the sun.
+A bright, bouncy trivia game that kids and adults can pick up in seconds. There's a new game every day: sixty seconds of play, three seconds per question, and one crown for the top score. Sunny, the game's sun, crosses the sky while you play, and a moon slides over Sunny's face to show each question's three seconds.
+
+Every screen has one obvious thing to do. **Play** has today's game and one card per session, **Ranks** has a podium and the winners, and **Me** has your stats and settings. The sky follows your time of day: morning, daytime, evening or night.
 
 Built with Expo SDK 58 / React Native 0.88 / Expo Router. One codebase for web, iOS and Android, with two servers:
 
@@ -15,7 +17,7 @@ npm run web          # http://localhost:8091 — offline mock, nothing to config
 npm run ios          # or: npm run android
 ```
 
-To see sessions open and crowns awarded at any hour, click **Preview** in the top bar (on phones: You › Preview controls).
+To see sessions open and crowns awarded at any hour, click **Preview** in the top bar (on phones: Me › Time machine).
 
 ## The rules (as built)
 
@@ -48,12 +50,12 @@ To deploy:
 - **Timing:** each answer's thinking time is the client's own measurement, clamped by the server's clock. A client that under-reports its time gains at most 0.9 s per question. Replayed or out-of-order answers are rejected.
 - **Answer security:** the answer bank never reaches production clients. `metro.config.js` swaps in a stub for Firebase builds. Firestore rules make every collection read-only for clients, and `runs`, which hold the answers, are unreadable.
 - **`functions/`**: `api` is one callable for every operation; `tick` creates each day and crowns champions.
-- **`src/`**: Expo Router screens, the design system (four light states that follow real time of day), the run controller, and the mock backend.
+- **`src/`**: Expo Router screens, the design system (four sky worlds that follow the time of day, white cards, chunky lip buttons, Fredoka type, a spring-based motion kit), the run controller, and the mock backend.
 
 ## Checks
 
 ```bash
-npm test             # 37 unit tests: engine, timing, bank, colour contrast
+npm test             # 56 unit tests: engine, timing, bank, colour contrast, card status, run windows
 npm run typecheck && npx eslint .
 npm --prefix functions run typecheck
 ```
