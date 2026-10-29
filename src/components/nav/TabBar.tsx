@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, w
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLight } from '@/theme/LightProvider';
 import { springs, useMotionOK } from '@/theme/motion';
+import { WHITE } from '@/theme/palette';
 import { Icon, type IconName } from '../icons';
 import { Tap } from '../ui/Tap';
 import { T } from '../ui/Text';
@@ -64,7 +65,7 @@ export function TabBar() {
           height: TAB_BAR_HEIGHT,
           padding: 6,
           borderRadius: 26,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: WHITE,
           boxShadow: `0px 5px 0px 0px ${light.shadow}, 0px 14px 28px -10px ${light.shadow}`,
         }}
       >

@@ -6,6 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { useLayout } from '@/theme/layout';
 import { CardScope, useLight } from '@/theme/LightProvider';
 import { dur, ease, springs, useMotionOK } from '@/theme/motion';
+import { LIPS } from '@/theme/palette';
 import { IconButton } from './Button';
 import { T } from './Text';
 
@@ -89,7 +90,7 @@ export function Sheet({
             <T v="m" color={c.ink} accessibilityRole="header" style={{ flex: 1 }}>
               {title}
             </T>
-            <IconButton icon="close" onPress={onClose} accessibilityLabel="Close" size={40} colors={{ bg: light.card.deep, fg: light.card.ink, lip: '#CBC1EE' }} />
+            <IconButton icon="close" onPress={onClose} accessibilityLabel="Close" size={40} colors={{ bg: light.card.deep, fg: light.card.ink, lip: LIPS.well }} />
           </View>
           {colors ? children : <CardScope>{children}</CardScope>}
         </Animated.View>

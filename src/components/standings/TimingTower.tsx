@@ -8,7 +8,7 @@ import { useGame } from '@/stores/game';
 import { useLayout } from '@/theme/layout';
 import { CardScope, useLight } from '@/theme/LightProvider';
 import { springs, useMotionOK } from '@/theme/motion';
-import { SIGNAL } from '@/theme/palette';
+import { SIGNAL, WHITE } from '@/theme/palette';
 import { flatShadow } from '@/theme/shape';
 import { FONTS, numeralWidth } from '@/theme/typography';
 import { Icon } from '../icons';
@@ -36,7 +36,7 @@ export function TimingTower({ board, limit = 10, offset = 0, rowHeight }: { boar
     return (
       <View style={{ gap: 8 }}>
         {Array.from({ length: Math.min(limit - offset, 6) }, (_, i) => (
-          <View key={i} style={{ height: h - 10, borderRadius: 18, backgroundColor: '#FFFFFF', opacity: 0.5 - i * 0.07 }} />
+          <View key={i} style={{ height: h - 10, borderRadius: 18, backgroundColor: WHITE, opacity: 0.5 - i * 0.07 }} />
         ))}
       </View>
     );
@@ -139,7 +139,7 @@ function TowerRow({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 10,
-          backgroundColor: you ? light.sun : '#FFFFFF',
+          backgroundColor: you ? light.sun : WHITE,
           boxShadow: flatShadow(light, 4),
         },
         style,

@@ -18,7 +18,7 @@ import { handleProblem, normalizeHandle, suggestHandle } from '@/lib/handles';
 import { useGame } from '@/stores/game';
 import { useLayout } from '@/theme/layout';
 import { useLight } from '@/theme/LightProvider';
-import { SIGNAL, TILES } from '@/theme/palette';
+import { CANDY, CARD, SIGNAL, SUNNY, TILES, WHITE } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 
 /** Hello, three things to know, then a name. Anyone can be playing in under a minute. */
@@ -150,7 +150,7 @@ export default function Welcome() {
                             setError(null);
                           }}
                           accessibilityLabel={copy.welcome.shuffle}
-                          colors={{ bg: '#FFC83D', fg: '#3D2500', lip: '#B87800' }}
+                          colors={{ bg: SUNNY.body, fg: SUNNY.ink, lip: SUNNY.lip }}
                         />
                       </Wiggle>
                     }
@@ -216,9 +216,9 @@ function HowStep({ index, onNext }: { index: number; onNext: () => void }) {
 function ClockPicture() {
   return (
     <Float amplitude={4} rotate={4}>
-      <View style={{ width: 110, height: 110, borderRadius: 34, backgroundColor: '#4FB8FF', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 6px 0px 0px #2A7FC4' }}>
-        <Icon name="clock" color="#FFFFFF" size={56} strokeWidth={2.6} />
-        <T v="label" color="#FFFFFF" style={{ position: 'absolute', bottom: 10, fontFamily: FONTS.display, fontSize: 18 }}>
+      <View style={{ width: 110, height: 110, borderRadius: 34, backgroundColor: CANDY.sky.bg, alignItems: 'center', justifyContent: 'center', boxShadow: `0px 6px 0px 0px ${CANDY.sky.lip}` }}>
+        <Icon name="clock" color={CARD.ink} size={56} strokeWidth={2.6} />
+        <T v="label" color={CARD.ink} style={{ position: 'absolute', bottom: 10, fontFamily: FONTS.display, fontSize: 18 }}>
           60s
         </T>
       </View>
@@ -243,7 +243,7 @@ function TilesPicture() {
               gap: 8,
             }}
           >
-            <View style={{ width: 20, height: 20, borderRadius: 7, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 20, height: 20, borderRadius: 7, backgroundColor: WHITE, alignItems: 'center', justifyContent: 'center' }}>
               {i === 1 ? <Icon name="check" color={SIGNAL.correctLip} size={14} strokeWidth={3.4} /> : null}
             </View>
             <View style={{ height: 8, width: 90 + i * 20, borderRadius: 4, backgroundColor: 'rgba(255, 255, 255, 0.6)' }} />
@@ -264,8 +264,8 @@ function PointsPicture() {
         <Bubble text="−1" bg={SIGNAL.wrong} fg={SIGNAL.onWrong} lip={SIGNAL.wrongLip} />
       </Float>
       <Float amplitude={5} delay={1000}>
-        <View style={{ width: 64, height: 64, borderRadius: 22, backgroundColor: '#FFC83D', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 5px 0px 0px #B87800' }}>
-          <Icon name="crown" color="#3D2500" size={34} strokeWidth={2.4} filled />
+        <View style={{ width: 64, height: 64, borderRadius: 22, backgroundColor: SUNNY.body, alignItems: 'center', justifyContent: 'center', boxShadow: `0px 5px 0px 0px ${SUNNY.lip}` }}>
+          <Icon name="crown" color={SUNNY.ink} size={34} strokeWidth={2.4} filled />
         </View>
       </Float>
     </View>

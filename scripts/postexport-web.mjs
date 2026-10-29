@@ -16,19 +16,19 @@ if (!existsSync(file)) {
 }
 
 const site = process.env.EXPO_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? '';
-const title = 'Meridian — the daily trivia championship';
-const description = 'Sixty seconds a run. Three seconds a question. One crown a day.';
+const title = 'Meridian — quick trivia for everyone';
+const description = 'A new trivia game every day. Sixty seconds, three seconds a question, one crown.';
 copyFileSync(join(root, 'assets', 'og.png'), join(root, 'dist', 'og.png'));
 
 const head = `
     <meta name="description" content="${description}" />
-    <meta name="theme-color" content="#1E1C5E" />
+    <meta name="theme-color" content="#6B3BEA" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:image" content="${site}/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <style>html,body{background:#0C0D24;margin:0}</style>`;
+    <style>html,body{background:#6B3BEA linear-gradient(180deg,#6B3BEA,#B02A78) fixed;margin:0}</style>`;
 
 let html = readFileSync(file, 'utf8');
 if (!html.includes('og:title')) {

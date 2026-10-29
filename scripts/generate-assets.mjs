@@ -61,7 +61,7 @@ const hex = (h, a = 1) => {
 
 /**
  * Paint a list of shapes (back to front). Each shape: { test(x, y) => bool, color }.
- * `background` may be null for transparency.
+ * `background` is a colour, a function of (x, y) returning one (gradients), or null for transparency.
  */
 function paint(width, height, background, shapes, ss = 4) {
   const rgba = Buffer.alloc(width * height * 4);
@@ -73,7 +73,7 @@ function paint(width, height, background, shapes, ss = 4) {
           const px = x + (sx + 0.5) / ss;
           const py = y + (sy + 0.5) / ss;
           let cr = 0, cg = 0, cb = 0, ca = 0;
-          if (background) [cr, cg, cb, ca] = background;
+          if (background) [cr, cg, cb, ca] = typeof background === 'function' ? background(px, py) : background;
           for (const s of shapes) {
             if (!s.test(px, py)) continue;
             const [sr, sg, sb, sa] = s.color;
@@ -101,19 +101,71 @@ function paint(width, height, background, shapes, ss = 4) {
 }
 
 const circle = (cx, cy, r, color) => ({ test: (x, y) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r, color });
-const rect = (x0, y0, x1, y1, color) => ({ test: (x, y) => x >= x0 && x <= x1 && y >= y0 && y <= y1, color });
-
-const BLUE_HOUR = { field: '#1E1C5E', sun: '#FF7759', ink: '#FFEDE3' };
-
-/** The Meridian mark: a sun crossed by the meridian. `s` is the canvas size, `k` the mark scale. */
-function mark(s, k, colors, cy = s / 2) {
-  const r = s * 0.29 * k;
-  const w = Math.max(2, s * 0.028 * k);
-  return [
-    circle(s / 2, cy, r, hex(colors.sun)),
-    rect(s / 2 - w / 2, cy - s * 0.38 * k, s / 2 + w / 2, cy + s * 0.38 * k, hex(colors.ink)),
-  ];
+const ellipse = (cx, cy, rx, ry, color) => ({ test: (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1, color });
+/** The lower half of an ellipse: Sunny's open smile. */
+const smile = (cx, cy, rx, ry, color) => ({ test: (x, y) => y >= cy && ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1, color });
+/** A rounded bar between two points (a sun ray). */
+function capsule(x0, y0, x1, y1, r, color) {
+  return {
+    test: (x, y) => {
+      const dx = x1 - x0;
+      const dy = y1 - y0;
+      const t = Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / (dx * dx + dy * dy)));
+      return (x - x0 - t * dx) ** 2 + (y - y0 - t * dy) ** 2 <= r * r;
+    },
+    color,
+  };
 }
+const roundRect = (x0, y0, x1, y1, r, color) => ({
+  test: (x, y) => {
+    if (x < x0 || x > x1 || y < y0 || y > y1) return false;
+    const cx = Math.max(x0 + r, Math.min(x1 - r, x));
+    const cy = Math.max(y0 + r, Math.min(y1 - r, y));
+    return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
+  },
+  color,
+});
+
+/** Kept in sync with LIGHTS.bluehour in src/theme/palette.ts: the evening sky and Sunny's colours. */
+const BRAND = { top: '#6B3BEA', bottom: '#B02A78', sun: '#FFC83D', face: '#3A2200', cheek: '#FF7FA0' };
+
+/** The evening sky, top to bottom, as a background function. */
+function sky(height) {
+  const [a, b] = [hex(BRAND.top), hex(BRAND.bottom)];
+  return (_x, y) => {
+    const t = Math.min(1, Math.max(0, y / height));
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, 1];
+  };
+}
+
+/**
+ * Sunny, the Meridian mark (src/components/brand/Mark.tsx), on a 100-unit
+ * grid scaled to `size` px and centred at (cx, cy). `face: false` draws the
+ * silhouette only (Android's monochrome icon).
+ */
+function sunny(size, cx, cy, { face = true, color = BRAND.sun } = {}) {
+  const k = size / 100;
+  const at = (x, y) => [cx + (x - 50) * k, cy + (y - 50) * k];
+  const shapes = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const [x0, y0] = at(50 + Math.sin(a) * 37, 50 - Math.cos(a) * 37);
+    const [x1, y1] = at(50 + Math.sin(a) * 43, 50 - Math.cos(a) * 43);
+    shapes.push(capsule(x0, y0, x1, y1, 5 * k, hex(color)));
+  }
+  shapes.push(circle(...at(50, 50), 31 * k, hex(color)));
+  if (!face) return shapes;
+  shapes.push(circle(...at(39, 38), 8 * k, hex('#FFFFFF', 0.35)));
+  shapes.push(ellipse(...at(33, 58), 6 * k, 3.5 * k, hex(BRAND.cheek, 0.6)));
+  shapes.push(ellipse(...at(67, 58), 6 * k, 3.5 * k, hex(BRAND.cheek, 0.6)));
+  shapes.push(ellipse(...at(40, 48), 4 * k, 5 * k, hex(BRAND.face)));
+  shapes.push(ellipse(...at(60, 48), 4 * k, 5 * k, hex(BRAND.face)));
+  shapes.push(smile(...at(50, 60), 12 * k, 8 * k, hex(BRAND.face)));
+  return shapes;
+}
+
+/** A few rounded pixels drifting in the sky. */
+const pixels = (list) => list.map(([x, y, s]) => roundRect(x, y, x + s, y + s, s * 0.28, hex('#FFFFFF', 0.22)));
 
 function writePng(name, width, height, background, shapes, ss) {
   writeFileSync(out(name), encodePng(width, height, paint(width, height, background, shapes, ss)));
@@ -121,35 +173,13 @@ function writePng(name, width, height, background, shapes, ss) {
 }
 
 console.log('Brand images');
-writePng('icon.png', 1024, 1024, hex(BLUE_HOUR.field), mark(1024, 1, BLUE_HOUR));
-writePng('android-icon-background.png', 512, 512, hex(BLUE_HOUR.field), []);
-writePng('android-icon-foreground.png', 1024, 1024, null, mark(1024, 0.72, BLUE_HOUR));
-writePng('android-icon-monochrome.png', 1024, 1024, null, mark(1024, 0.72, { sun: '#FFFFFF', ink: '#FFFFFF' }));
-writePng('splash-icon.png', 512, 512, null, mark(512, 1.1, BLUE_HOUR));
-writePng('favicon.png', 64, 64, hex(BLUE_HOUR.field), mark(64, 1.15, BLUE_HOUR), 6);
-writePng('og.png', 1200, 630, hex(BLUE_HOUR.field), [
-  circle(900, 400, 300, hex(BLUE_HOUR.sun)),
-  rect(897, 40, 903, 630, hex(BLUE_HOUR.ink)),
-  rect(0, 470, 1200, 472, hex(BLUE_HOUR.ink, 0.5)),
-], 2);
-
-// Film grain: transparent tile of faint light and dark specks.
-{
-  const size = 160;
-  const rgba = Buffer.alloc(size * size * 4);
-  let seed = 7;
-  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-  for (let i = 0; i < size * size; i++) {
-    const light = rnd() > 0.5;
-    const v = light ? 255 : 0;
-    rgba[i * 4] = v;
-    rgba[i * 4 + 1] = v;
-    rgba[i * 4 + 2] = v;
-    rgba[i * 4 + 3] = Math.floor(rnd() ** 2 * 34);
-  }
-  writeFileSync(out('grain.png'), encodePng(size, size, rgba));
-  console.log('  png grain.png');
-}
+writePng('icon.png', 1024, 1024, sky(1024), [...pixels([[120, 150, 70], [820, 760, 90], [170, 800, 50]]), ...sunny(860, 512, 512)]);
+writePng('android-icon-background.png', 512, 512, sky(512), pixels([[60, 70, 36], [420, 390, 44]]));
+writePng('android-icon-foreground.png', 1024, 1024, null, sunny(600, 512, 512));
+writePng('android-icon-monochrome.png', 1024, 1024, null, sunny(600, 512, 512, { face: false, color: '#FFFFFF' }));
+writePng('splash-icon.png', 512, 512, null, sunny(480, 256, 256));
+writePng('favicon.png', 64, 64, sky(64), sunny(60, 32, 32), 6);
+writePng('og.png', 1200, 630, sky(630), [...pixels([[90, 80, 60], [260, 420, 44], [520, 140, 36], [640, 520, 52], [1080, 70, 48]]), ...sunny(560, 860, 330)], 2);
 
 // ---------------------------------------------------------------- WAV ------
 

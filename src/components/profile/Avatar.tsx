@@ -1,9 +1,9 @@
 import { View } from 'react-native';
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, Path, Rect } from 'react-native-svg';
 import { mulberry32 } from '@shared/random';
+import { FACES, WHITE } from '@/theme/palette';
 
-const COLORS = ['#FFC83D', '#4FB8FF', '#FF8FB8', '#2BD46A', '#B08CFF', '#FF9A1F', '#3EDBD0', '#FF5A5F', '#8FD14F', '#6B8BFF'];
-const INK = '#2A1B4A';
+const INK = FACES.ink;
 
 /**
  * Every player gets a little face of their own: a colour, eyes, a mouth and
@@ -11,7 +11,7 @@ const INK = '#2A1B4A';
  */
 export function Avatar({ seed, size = 40, ring }: { seed: number; size?: number; ring?: string }) {
   const rng = mulberry32(seed + 17);
-  const bg = COLORS[Math.floor(rng() * COLORS.length)];
+  const bg = FACES.colors[Math.floor(rng() * FACES.colors.length)];
   const eyes = Math.floor(rng() * 4);
   const mouth = Math.floor(rng() * 4);
   const extra = Math.floor(rng() * 5);
@@ -27,21 +27,21 @@ export function Avatar({ seed, size = 40, ring }: { seed: number; size?: number;
         </Defs>
         <G clipPath={`url(#${id})`}>
           <Rect x="0" y="0" width="100" height="100" fill={bg} />
-          <Circle cx="34" cy="28" r="16" fill="#FFFFFF" opacity={0.25} />
+          <Circle cx="34" cy="28" r="16" fill={WHITE} opacity={0.25} />
           {blush ? (
             <>
-              <Ellipse cx="26" cy="62" rx="8" ry="5" fill="#FF6F8E" opacity={0.45} />
-              <Ellipse cx="74" cy="62" rx="8" ry="5" fill="#FF6F8E" opacity={0.45} />
+              <Ellipse cx="26" cy="62" rx="8" ry="5" fill={FACES.cheek} opacity={0.45} />
+              <Ellipse cx="74" cy="62" rx="8" ry="5" fill={FACES.cheek} opacity={0.45} />
             </>
           ) : null}
           <Eyes kind={eyes} />
           <Mouth kind={mouth} />
-          {extra === 0 ? <Path d="M50 14 Q44 2 34 6 Q40 14 50 14 Z M50 14 Q56 2 66 6 Q60 14 50 14 Z" fill="#2BA84A" /> : null}
+          {extra === 0 ? <Path d="M50 14 Q44 2 34 6 Q40 14 50 14 Z M50 14 Q56 2 66 6 Q60 14 50 14 Z" fill={FACES.sprout} /> : null}
           {extra === 1 ? (
             <G>
-              <Path d="M50 16 L36 8 L36 24 Z" fill="#FF5FA2" />
-              <Path d="M50 16 L64 8 L64 24 Z" fill="#FF5FA2" />
-              <Circle cx="50" cy="16" r="4" fill="#E0407F" />
+              <Path d="M50 16 L36 8 L36 24 Z" fill={FACES.bow} />
+              <Path d="M50 16 L64 8 L64 24 Z" fill={FACES.bow} />
+              <Circle cx="50" cy="16" r="4" fill={FACES.knot} />
             </G>
           ) : null}
         </G>
@@ -63,8 +63,8 @@ function Eyes({ kind }: { kind: number }) {
     case 2:
       return (
         <G>
-          <Circle cx="35" cy="46" r="8" fill="#FFFFFF" />
-          <Circle cx="65" cy="46" r="8" fill="#FFFFFF" />
+          <Circle cx="35" cy="46" r="8" fill={WHITE} />
+          <Circle cx="65" cy="46" r="8" fill={WHITE} />
           <Circle cx="36" cy="47" r="4.5" fill={INK} />
           <Circle cx="66" cy="47" r="4.5" fill={INK} />
         </G>
@@ -94,7 +94,7 @@ function Mouth({ kind }: { kind: number }) {
       return (
         <G>
           <Path d="M36 62 Q50 80 64 62 Z" fill={INK} />
-          <Path d="M43 70 Q50 66 57 70 Q50 75 43 70 Z" fill="#FF6F8E" />
+          <Path d="M43 70 Q50 66 57 70 Q50 75 43 70 Z" fill={FACES.cheek} />
         </G>
       );
     case 3:

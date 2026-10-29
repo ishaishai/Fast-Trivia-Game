@@ -4,8 +4,7 @@ import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming, type Sh
 import { scheduleOnRN } from 'react-native-worklets';
 import { mulberry32 } from '@shared/random';
 import { fx, useMotionOK } from '@/theme/motion';
-
-const COLORS = ['#FFC83D', '#FF5FA2', '#4FB8FF', '#8A3FE0', '#2BD46A', '#FF9A1F'];
+import { CONFETTI, WHITE } from '@/theme/palette';
 
 interface Bit {
   x: number;
@@ -24,7 +23,7 @@ interface Bit {
  * flutters back down. Fires each time `fire` changes to a new non-zero
  * number. Nothing shows under reduced motion.
  */
-export function Confetti({ fire, count = 28, colors = COLORS, duration = 2200 }: { fire: number; count?: number; colors?: readonly string[]; duration?: number }) {
+export function Confetti({ fire, count = 28, colors = CONFETTI, duration = 2200 }: { fire: number; count?: number; colors?: readonly string[]; duration?: number }) {
   const motion = useMotionOK();
   // The volley that has already landed; a new `fire` throws another.
   const [landed, setLanded] = useState(0);
@@ -48,7 +47,7 @@ function Volley({ seed, count, colors, duration, onDone }: { seed: number; count
           long: random() > 0.5,
           spin: (random() - 0.5) * 900,
           sway: 10 + random() * 20,
-          color: colors[i % colors.length] ?? '#FFFFFF',
+          color: colors[i % colors.length] ?? WHITE,
           delay: random() * 0.12,
         };
       });

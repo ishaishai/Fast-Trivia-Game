@@ -8,6 +8,7 @@ import { useGame } from '@/stores/game';
 import { usePreviewSheet } from '@/stores/ui';
 import { useLayout } from '@/theme/layout';
 import { CardScope, useLight } from '@/theme/LightProvider';
+import { WHITE } from '@/theme/palette';
 import { Logo } from '../brand/Logo';
 import { Icon, type IconName } from '../icons';
 import { useSquish } from '../motion/Playful';
@@ -41,7 +42,7 @@ export function TopNav() {
             height: TOP_NAV_HEIGHT - 16,
             paddingHorizontal: 14,
             borderRadius: 24,
-            backgroundColor: '#FFFFFF',
+            backgroundColor: WHITE,
             flexDirection: 'row',
             alignItems: 'center',
             gap: 16,

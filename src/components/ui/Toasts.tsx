@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 import { useLight } from '@/theme/LightProvider';
 import { dur, ease, springs, useMotionOK } from '@/theme/motion';
-import { CARD, SIGNAL } from '@/theme/palette';
+import { CARD, SIGNAL, WHITE } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { Icon } from '../icons';
 import { T } from './Text';
@@ -75,7 +75,7 @@ function ToastPill({ toast: t }: { toast: Toast }) {
           flexDirection: 'row',
           alignItems: 'center',
           gap: 10,
-          backgroundColor: error ? SIGNAL.wrong : '#FFFFFF',
+          backgroundColor: error ? SIGNAL.wrong : WHITE,
           boxShadow: `0px 4px 0px 0px ${error ? SIGNAL.wrongLip : light.shadow}`,
         },
         style,

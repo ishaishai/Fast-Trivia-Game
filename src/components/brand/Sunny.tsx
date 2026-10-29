@@ -13,11 +13,12 @@ import Animated, {
 import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 import { useLight } from '@/theme/LightProvider';
 import { useMotionOK } from '@/theme/motion';
+import { SUNNY, WHITE } from '@/theme/palette';
 import { useAmbientClock } from '../motion/Playful';
 
 export type Mood = 'happy' | 'wow' | 'worried' | 'sleepy' | 'proud';
 
-const FACE = '#3A2200';
+const FACE = SUNNY.face;
 
 /**
  * Sunny, Meridian's sun: rays that turn, eyes that blink, a face that
@@ -73,9 +74,9 @@ export function Sunny({
       ) : null}
       <Svg width={size} height={size} viewBox="0 0 120 120" style={StyleSheet.absoluteFill}>
         <Circle cx="60" cy="60" r={rays ? 36 : 46} fill={fill} />
-        <Circle cx={rays ? 47 : 44} cy={rays ? 46 : 42} r={rays ? 9 : 12} fill="#FFFFFF" opacity={0.35} />
-        <Ellipse cx="41" cy="70" rx="7" ry="4.5" fill="#FF7FA0" opacity={0.6} />
-        <Ellipse cx="79" cy="70" rx="7" ry="4.5" fill="#FF7FA0" opacity={0.6} />
+        <Circle cx={rays ? 47 : 44} cy={rays ? 46 : 42} r={rays ? 9 : 12} fill={WHITE} opacity={0.35} />
+        <Ellipse cx="41" cy="70" rx="7" ry="4.5" fill={SUNNY.cheek} opacity={0.6} />
+        <Ellipse cx="79" cy="70" rx="7" ry="4.5" fill={SUNNY.cheek} opacity={0.6} />
         <Mouth mood={mood} />
       </Svg>
       <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: '50% 47%' }, eyes]}>
@@ -101,8 +102,8 @@ function Eyes({ mood }: { mood: Mood }) {
     <G>
       <Ellipse cx="47" cy="56" rx={big ? 5 : 4.4} ry={big ? 6.5 : 5.6} fill={FACE} />
       <Ellipse cx="73" cy="56" rx={big ? 5 : 4.4} ry={big ? 6.5 : 5.6} fill={FACE} />
-      <Circle cx="48.6" cy="53.6" r="1.6" fill="#FFFFFF" />
-      <Circle cx="74.6" cy="53.6" r="1.6" fill="#FFFFFF" />
+      <Circle cx="48.6" cy="53.6" r="1.6" fill={WHITE} />
+      <Circle cx="74.6" cy="53.6" r="1.6" fill={WHITE} />
       {mood === 'worried' ? (
         <G stroke={FACE} strokeWidth="3" strokeLinecap="round">
           <Path d="M40 48 L51 44" />
@@ -125,7 +126,7 @@ function Mouth({ mood }: { mood: Mood }) {
       return (
         <G>
           <Path d="M46 69 Q60 90 74 69 Z" fill={FACE} />
-          <Path d="M53 79 Q60 74 67 79 Q60 84 53 79 Z" fill="#FF6F8E" />
+          <Path d="M53 79 Q60 74 67 79 Q60 84 53 79 Z" fill={SUNNY.tongue} />
         </G>
       );
   }

@@ -6,17 +6,12 @@ import { signed } from '@/lib/format';
 import { useGame } from '@/stores/game';
 import { useLight } from '@/theme/LightProvider';
 import { springs, useMotionOK } from '@/theme/motion';
+import { PODIUM, SUNNY, WHITE } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { Icon } from '../icons';
 import { Float, PopIn } from '../motion/Playful';
 import { Avatar } from '../profile/Avatar';
 import { T } from '../ui/Text';
-
-const BLOCKS = [
-  { bg: '#FFC83D', lip: '#B87800', ink: '#3D2500' },
-  { bg: '#BFE3FF', lip: '#6FA8D8', ink: '#0B2252' },
-  { bg: '#FFC1A1', lip: '#D9825A', ink: '#4A1A00' },
-];
 
 /**
  * The top three on blocks. Third rises first, then second, then the winner,
@@ -53,7 +48,7 @@ function Seat({ place, row, height, compact }: { place: number; row: EntryRow | 
   }, [delay, motion, rise]);
   const block = useAnimatedStyle(() => ({ transform: [{ scaleY: Math.max(0.05, rise.value) }] }));
   const badge = useAnimatedStyle(() => ({ opacity: withTiming(rise.value > 0.6 ? 1 : 0, { duration: 160 }) }));
-  const b = BLOCKS[place];
+  const b = PODIUM[place];
   const you = row?.uid === uid;
   const avatar = place === 0 ? (compact ? 52 : 64) : compact ? 42 : 52;
   return (
@@ -61,12 +56,12 @@ function Seat({ place, row, height, compact }: { place: number; row: EntryRow | 
       <PopIn delay={delay + 260} from={0.4} style={{ alignItems: 'center', gap: 4, marginBottom: 8, width: '100%' }}>
         {place === 0 && row ? (
           <Float amplitude={4} rotate={6} style={{ marginBottom: -6 }}>
-            <Icon name="crown" color="#FFC83D" size={compact ? 28 : 34} strokeWidth={2.6} filled />
+            <Icon name="crown" color={SUNNY.body} size={compact ? 28 : 34} strokeWidth={2.6} filled />
           </Float>
         ) : null}
         {row ? (
           <>
-            <View style={{ borderRadius: avatar, borderWidth: 3, borderColor: you ? light.sun : '#FFFFFF', boxShadow: `0px 3px 0px 0px ${light.shadow}` }}>
+            <View style={{ borderRadius: avatar, borderWidth: 3, borderColor: you ? light.sun : WHITE, boxShadow: `0px 3px 0px 0px ${light.shadow}` }}>
               <Avatar seed={row.avatarSeed} size={avatar} />
             </View>
             <T v="label" fit={0.6} align="center" style={{ fontSize: 14, alignSelf: 'stretch' }}>

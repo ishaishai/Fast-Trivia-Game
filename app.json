@@ -6,8 +6,8 @@
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#1E1C5E",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#6B3BEA",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ishaishai.meridian"
@@ -15,7 +15,7 @@
     "android": {
       "package": "com.ishaishai.meridian",
       "adaptiveIcon": {
-        "backgroundColor": "#1E1C5E",
+        "backgroundColor": "#6B3BEA",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -26,11 +26,11 @@
       "output": "single",
       "bundler": "metro",
       "favicon": "./assets/favicon.png",
-      "name": "Meridian — the daily trivia championship",
+      "name": "Meridian — quick trivia for everyone",
       "shortName": "Meridian",
-      "description": "Sixty seconds a run. Three seconds a question. One crown a day.",
-      "themeColor": "#1E1C5E",
-      "backgroundColor": "#1E1C5E"
+      "description": "A new trivia game every day. Sixty seconds, three seconds a question, one crown.",
+      "themeColor": "#6B3BEA",
+      "backgroundColor": "#6B3BEA"
     },
     "plugins": [
       "expo-router",
@@ -39,9 +39,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 160,
+          "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#1E1C5E"
+          "backgroundColor": "#6B3BEA"
         }
       ],
       "expo-audio"

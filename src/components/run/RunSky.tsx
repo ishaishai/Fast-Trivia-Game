@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Rect } from 'react-native-svg';
 import type { RunPhase } from '@/run/useRunController';
-import { LIGHTS, SIGNAL } from '@/theme/palette';
+import { LIGHTS, MOON, SIGNAL, SUNNY } from '@/theme/palette';
 import { Sunny, type Mood } from '../brand/Sunny';
 import { useAmbientClock } from '../motion/Playful';
 import { Gradient } from '../ui/Gradient';
@@ -115,12 +115,12 @@ export function RunSky({
     <View style={{ width, height, overflow: 'hidden' }}>
       <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 0, top: 0, width: sunSize, height: sunSize }, sunPos]} aria-hidden>
         <Animated.View
-          style={[{ position: 'absolute', left: -sunSize * 0.45, top: -sunSize * 0.45, width: sunSize * 1.9, height: sunSize * 1.9, borderRadius: sunSize }, glow]}
+          style={[{ position: 'absolute', left: -sunSize * 0.3, top: -sunSize * 0.3, width: sunSize * 1.6, height: sunSize * 1.6, borderRadius: sunSize }, glow]}
         />
         <Animated.View style={[{ position: 'absolute', left: (sunSize - ray) / 2, top: (sunSize - ray) / 2, width: ray, height: ray }, rays]}>
           <Svg width={ray} height={ray} viewBox="0 0 120 120">
             {Array.from({ length: 12 }, (_, i) => (
-              <Rect key={i} x="55" y="1" width="10" height="20" rx="5" fill="#FFC83D" transform={`rotate(${i * 30} 60 60)`} />
+              <Rect key={i} x="55" y="1" width="10" height="20" rx="5" fill={SUNNY.body} transform={`rotate(${i * 30} 60 60)`} />
             ))}
           </Svg>
         </Animated.View>
@@ -130,16 +130,16 @@ export function RunSky({
             corona,
           ]}
         />
-        <View style={{ width: sunSize, height: sunSize, borderRadius: sunSize / 2, overflow: 'hidden', backgroundColor: '#FFC83D' }}>
+        <View style={{ width: sunSize, height: sunSize, borderRadius: sunSize / 2, overflow: 'hidden', backgroundColor: SUNNY.body }}>
           <View style={{ position: 'absolute', left: (sunSize - face) / 2, top: (sunSize - face) / 2 }}>
-            <Sunny size={face} mood={mood} rays={false} color="#FFC83D" />
+            <Sunny size={face} mood={mood} rays={false} color={SUNNY.body} />
           </View>
           <Animated.View style={[StyleSheet.absoluteFill, moon]}>
             <Svg width={sunSize} height={sunSize} viewBox="0 0 100 100">
-              <Circle cx="50" cy="50" r="50" fill="#E4DEFF" />
-              <Circle cx="34" cy="36" r="9" fill="#CFC6F2" />
-              <Circle cx="62" cy="62" r="13" fill="#CFC6F2" />
-              <Circle cx="70" cy="30" r="5" fill="#CFC6F2" />
+              <Circle cx="50" cy="50" r="50" fill={MOON.face} />
+              <Circle cx="34" cy="36" r="9" fill={MOON.crater} />
+              <Circle cx="62" cy="62" r="13" fill={MOON.crater} />
+              <Circle cx="70" cy="30" r="5" fill={MOON.crater} />
             </Svg>
           </Animated.View>
         </View>

@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { fx, useMotionOK } from '@/theme/motion';
+import { WHITE } from '@/theme/palette';
 
 export interface BurstOpts {
   /** where it starts, in window coordinates */
@@ -46,7 +47,7 @@ function seedsFor(opts: BurstOpts): Seed[] {
       dy: Math.sin(a) * r - spread * 0.25,
       size: 7 + Math.random() * 6,
       spin: (Math.random() - 0.5) * 540,
-      color: opts.colors[i % opts.colors.length] ?? '#FFFFFF',
+      color: opts.colors[i % opts.colors.length] ?? WHITE,
     };
   });
 }

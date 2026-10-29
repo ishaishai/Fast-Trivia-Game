@@ -3,7 +3,7 @@ import { Platform, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { VISUAL } from '@/run/windows';
 import { springs, useMotionOK } from '@/theme/motion';
-import { SIGNAL, TILES } from '@/theme/palette';
+import { SIGNAL, TILES, WHITE } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { Icon } from '../icons';
 import { Tap } from '../ui/Tap';
@@ -132,14 +132,14 @@ export function AnswerOption({
                   gap: 12,
                   backgroundColor: bg,
                   borderWidth: 3,
-                  borderColor: state === 'locked' ? '#FFFFFF' : hovered && enabled ? 'rgba(255, 255, 255, 0.55)' : 'transparent',
+                  borderColor: state === 'locked' ? WHITE : hovered && enabled ? 'rgba(255, 255, 255, 0.55)' : 'transparent',
                   overflow: 'hidden',
                 },
                 face,
               ]}
             >
               <View pointerEvents="none" style={{ position: 'absolute', top: 3, left: 3, right: 3, height: '40%', borderTopLeftRadius: 16, borderTopRightRadius: 16, backgroundColor: 'rgba(255, 255, 255, 0.16)' }} />
-              <View style={{ width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' }}>
+              <View style={{ width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: WHITE }}>
                 {state === 'correct' || state === 'answer' ? (
                   <Icon name="check" color={SIGNAL.correctLip} size={20} strokeWidth={3.2} />
                 ) : state === 'wrong' ? (

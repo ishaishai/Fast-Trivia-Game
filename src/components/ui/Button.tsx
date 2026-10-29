@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } fr
 import { onCard, useLight } from '@/theme/LightProvider';
 import { useLayout } from '@/theme/layout';
 import { springs, useMotionOK } from '@/theme/motion';
+import { LIPS, WHITE } from '@/theme/palette';
 import { lip as LIP } from '@/theme/shape';
 import { Icon, type IconName } from '../icons';
 import { Float, Pulse } from '../motion/Playful';
@@ -74,8 +75,8 @@ export function Button({
     {
       sun: { bg: light.sun, fg: light.onSun, lip: light.sunLip },
       ink: card
-        ? { bg: light.card.deep, fg: light.card.ink, lip: '#CBC1EE' }
-        : { bg: '#FFFFFF', fg: light.card.ink, lip: '#D4CCEE' },
+        ? { bg: light.card.deep, fg: light.card.ink, lip: LIPS.well }
+        : { bg: WHITE, fg: light.card.ink, lip: LIPS.white },
       ghost: { bg: 'transparent', fg: light.ink, lip: 'transparent' },
     }[variant];
   const tap = (
@@ -255,7 +256,7 @@ export function IconButton({
   colors?: { bg: string; fg: string; lip: string };
 }) {
   const light = useLight();
-  const c = colors ?? { bg: '#FFFFFF', fg: light.card.ink, lip: '#D4CCEE' };
+  const c = colors ?? { bg: WHITE, fg: light.card.ink, lip: LIPS.white };
   return (
     <Tap onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={{ borderRadius: size }}>
       {(state) => <RoundFace state={state} icon={icon} size={size} {...c} />}

@@ -17,6 +17,7 @@ import { useGame } from '@/stores/game';
 import { FONT_ASSETS } from '@/theme/fonts';
 import { LayoutProvider } from '@/theme/layout';
 import { AmbientLight, useLight } from '@/theme/LightProvider';
+import { SUNNY } from '@/theme/palette';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -55,7 +56,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
   if (!booted) {
     return (
       <Gradient colors={light.sky} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Mark size={96} sun={light.sun} line="#3A2200" />
+        <Mark size={96} sun={light.sun} line={SUNNY.face} />
       </Gradient>
     );
   }
@@ -63,7 +64,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
   if (error) {
     return (
       <Gradient colors={light.sky} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
-        <Mark size={80} sun={light.sun} line="#3A2200" />
+        <Mark size={80} sun={light.sun} line={SUNNY.face} />
         <T v="m" align="center">
           Meridian couldn’t start.
         </T>

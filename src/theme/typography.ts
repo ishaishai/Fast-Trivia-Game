@@ -13,14 +13,6 @@ export const FONTS = {
   text: 'AtkinsonHyperlegibleNext_400Regular',
   textSemi: 'AtkinsonHyperlegibleNext_600SemiBold',
   textBold: 'AtkinsonHyperlegibleNext_700Bold',
-  // TODO(redesign): old faces mapped onto Fredoka while screens move over; removed at the end.
-  thin: 'Fredoka_500Medium',
-  light: 'Fredoka_500Medium',
-  bold: 'Fredoka_700Bold',
-  extra: 'Fredoka_700Bold',
-  black: 'Fredoka_700Bold',
-  mono: 'Fredoka_500Medium',
-  monoSemi: 'Fredoka_600SemiBold',
 } as const;
 
 export type TypeVariant =

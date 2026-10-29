@@ -5,6 +5,7 @@ import { monthShort, num, signed, weekdayLong } from '@/lib/format';
 import { useGame } from '@/stores/game';
 import { useLayout } from '@/theme/layout';
 import { useLight } from '@/theme/LightProvider';
+import { SUNNY } from '@/theme/palette';
 import { Sunny } from '../brand/Sunny';
 import { Icon } from '../icons';
 import { PopIn } from '../motion/Playful';
@@ -107,7 +108,7 @@ export function Winners() {
                             {isMine ? 'You won!' : `@${r.handle}`}
                           </T>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Icon name="crown" color={isMine ? light.onSun : '#E09A00'} size={16} strokeWidth={2.4} filled />
+                            <Icon name="crown" color={isMine ? light.onSun : SUNNY.crown} size={16} strokeWidth={2.4} filled />
                             <T v="label" color={isMine ? light.onSun : light.card.ink}>
                               {signed(r.score)}
                             </T>

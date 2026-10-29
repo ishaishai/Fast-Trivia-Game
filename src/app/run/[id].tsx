@@ -34,9 +34,9 @@ import { usePracticeResult } from '@/stores/practice';
 import { useSettings } from '@/stores/settings';
 import { useLayout } from '@/theme/layout';
 import { LightScope } from '@/theme/LightProvider';
-import { CARD, LIGHTS } from '@/theme/palette';
+import { CANDY, CARD, LIGHTS, SIGNAL, SUNNY, WHITE } from '@/theme/palette';
 
-const BURST = ['#FFC83D', '#FFFFFF', '#2BD46A', '#FF5FA2'];
+const BURST = [SUNNY.body, WHITE, SIGNAL.correct, CANDY.pink.bg];
 
 export default function RunRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -167,8 +167,8 @@ function RunScreen({ id }: { id: string }) {
   const split = layout.splitRun;
   const skyW = split ? Math.round(layout.width * 0.44) : layout.width;
   const skyH = split ? layout.height : Math.round(Math.min(Math.max(layout.height * 0.3, 210), 300));
-  const sunSize = split ? Math.min(skyW * 0.22, 170) : Math.min(layout.width * 0.2, 84);
-  const pill = split ? 60 : 46;
+  const sunSize = split ? Math.min(skyW * 0.22, 170) : Math.min(layout.width * 0.17, 68);
+  const pill = split ? 60 : 44;
   const groundPad = split ? Math.max(32, layout.width * 0.04) : layout.gutter;
   const fact = practice && view.question && view.feedback ? practiceFact(view.question.qid) : undefined;
   const closed = competition ? phaseOf(competition, backend.now()) : null;
@@ -185,6 +185,21 @@ function RunScreen({ id }: { id: string }) {
             ? 'wow'
             : 'happy';
   const asleep = !inRun || view.phase === 'starting';
+  const hud = (
+    <>
+      <RunClock read={run.runLeftMs} phase={view.phase} size={pill} />
+      <RunScore
+        ref={scorePill}
+        score={view.totals.score}
+        rank={practice ? null : myRank}
+        rankDelta={rankDelta}
+        streak={view.totals.streak}
+        lastDelta={view.lastDelta}
+        size={pill}
+        light={light}
+      />
+    </>
+  );
 
   return (
     <LightScope name={lightName}>
@@ -204,8 +219,8 @@ function RunScreen({ id }: { id: string }) {
           sunSize={sunSize}
           phase={view.phase}
           mood={asleep ? 'happy' : mood}
-          floor={pill + 40}
-          ceiling={insets.top + 60}
+          floor={split ? pill + 40 : Math.round(sunSize * 0.34)}
+          ceiling={insets.top + (split ? 60 : 58)}
         >
           <View style={{ flex: 1, paddingTop: insets.top + 10, paddingHorizontal: split ? groundPad * 0.7 : layout.gutter, paddingBottom: 14 }}>
             <RunTopBar
@@ -215,22 +230,13 @@ function RunScreen({ id }: { id: string }) {
               onSound={() => setSound(!sound)}
               onQuit={() => (inRun ? setQuitOpen(true) : router.back())}
               canQuit={view.phase !== 'sunset'}
-            />
+            >
+              {/* On a phone the clock and score ride in the top bar, leaving the sky to the sun. */}
+              {!split && inRun && view.phase !== 'sunset' ? hud : null}
+            </RunTopBar>
             <View style={{ flex: 1 }} />
-            {view.phase !== 'sunset' ? (
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
-                <RunClock read={run.runLeftMs} phase={view.phase} size={pill} />
-                <RunScore
-                  ref={scorePill}
-                  score={view.totals.score}
-                  rank={practice ? null : myRank}
-                  rankDelta={rankDelta}
-                  streak={view.totals.streak}
-                  lastDelta={view.lastDelta}
-                  size={pill}
-                  light={light}
-                />
-              </View>
+            {split && view.phase !== 'sunset' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>{hud}</View>
             ) : null}
           </View>
         </RunSky>

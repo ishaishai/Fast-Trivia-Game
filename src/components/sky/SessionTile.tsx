@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { SESSIONS } from '@shared/schedule';
 import type { CompetitionKind, LightState } from '@shared/types';
-import { LIGHTS } from '@/theme/palette';
+import { LIGHTS, WHITE } from '@/theme/palette';
 import { Gradient } from '../ui/Gradient';
 
 /** Where the sun sits in each session's little sky. */
@@ -30,7 +30,7 @@ export function SessionTile({ kind, size = 60 }: { kind: CompetitionKind; size?:
       <View style={{ position: 'absolute', left: sun.x * size - r * 1.6, top: sun.y * size - r * 1.6, width: r * 3.2, height: r * 3.2, borderRadius: r * 2, backgroundColor: light.glow }} />
       <View style={{ position: 'absolute', left: sun.x * size - r, top: sun.y * size - r, width: r * 2, height: r * 2, borderRadius: r, backgroundColor: light.sun }} />
       {kind === 'bluehour' ? (
-        <View style={{ position: 'absolute', left: size * 0.2, top: size * 0.22, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF', opacity: 0.8 }} />
+        <View style={{ position: 'absolute', left: size * 0.2, top: size * 0.22, width: 4, height: 4, borderRadius: 2, backgroundColor: WHITE, opacity: 0.8 }} />
       ) : null}
     </Gradient>
   );

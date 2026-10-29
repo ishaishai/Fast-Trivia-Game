@@ -15,15 +15,16 @@ import { copy } from '@/copy/en';
 import { clockTime } from '@/lib/format';
 import { useGame } from '@/stores/game';
 import { useLayout } from '@/theme/layout';
+import { CANDY, CARD } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 
 const RULES: { n: string; text: string; icon: IconName; bg: string; lip: string }[] = [
-  { n: '60s', text: 'A game lasts 60 seconds. The clock only runs while a question is showing.', icon: 'clock', bg: '#4FB8FF', lip: '#2A7FC4' },
-  { n: '3s', text: 'You get 3 seconds for each question.', icon: 'bolt', bg: '#FFC83D', lip: '#B87800' },
-  { n: '+3', text: 'For every right answer.', icon: 'check', bg: '#2BD46A', lip: '#14974A' },
-  { n: '−1', text: 'For a wrong answer, or no answer in time.', icon: 'cross', bg: '#FF5A5F', lip: '#C8323A' },
-  { n: '24', text: 'Skips a day. A skip costs nothing.', icon: 'skip', bg: '#B08CFF', lip: '#7A55D6' },
-  { n: '1', text: 'Go at each game. Everyone gets the same questions in the same order.', icon: 'star', bg: '#FF8FB8', lip: '#D45A88' },
+  { n: '60s', text: 'A game lasts 60 seconds. The clock only runs while a question is showing.', icon: 'clock', ...CANDY.sky },
+  { n: '3s', text: 'You get 3 seconds for each question.', icon: 'bolt', ...CANDY.sun },
+  { n: '+3', text: 'For every right answer.', icon: 'check', ...CANDY.mint },
+  { n: '−1', text: 'For a wrong answer, or no answer in time.', icon: 'cross', ...CANDY.coral },
+  { n: '24', text: 'Skips a day. A skip costs nothing.', icon: 'skip', ...CANDY.grape },
+  { n: '1', text: 'Go at each game. Everyone gets the same questions in the same order.', icon: 'star', ...CANDY.bubblegum },
 ];
 
 const FAQ: [string, string][] = [
@@ -56,7 +57,7 @@ export default function Rules() {
               <Card pad={16} shadow="flat" contentStyle={{ gap: 10, minHeight: 150 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: r.bg, alignItems: 'center', justifyContent: 'center', boxShadow: `0px 3px 0px 0px ${r.lip}` }}>
-                    <Icon name={r.icon} color="#221B45" size={21} strokeWidth={2.8} filled={r.icon === 'bolt' || r.icon === 'star'} />
+                    <Icon name={r.icon} color={CARD.ink} size={21} strokeWidth={2.8} filled={r.icon === 'bolt' || r.icon === 'star'} />
                   </View>
                   <T v="l" style={{ fontFamily: FONTS.display }}>
                     {r.n}

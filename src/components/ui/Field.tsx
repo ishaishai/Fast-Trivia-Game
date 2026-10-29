@@ -1,7 +1,7 @@
 import { forwardRef, useState, type ReactNode } from 'react';
 import { TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native';
 import { onCard, useLight } from '@/theme/LightProvider';
-import { SIGNAL } from '@/theme/palette';
+import { SIGNAL, WHITE } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { T } from './Text';
 
@@ -33,7 +33,7 @@ export const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
           height: 60,
           paddingHorizontal: 18,
           borderRadius: 18,
-          backgroundColor: onCard(light) ? light.deep : '#FFFFFF',
+          backgroundColor: onCard(light) ? light.deep : WHITE,
           borderWidth: 3,
           borderColor: border,
           gap: 4,

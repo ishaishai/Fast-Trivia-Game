@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { copy } from '@/copy/en';
 import { useLight } from '@/theme/LightProvider';
+import { CANDY, CARD } from '@/theme/palette';
 import { Icon, type IconName } from '../icons';
 import { PopIn } from '../motion/Playful';
 import { Button } from '../ui/Button';
@@ -36,7 +37,7 @@ export function HowToCard() {
   );
 }
 
-const STEP_COLORS = ['#4FB8FF', '#FFC83D', '#FF5FA2'];
+const STEP_COLORS = [CANDY.sky.bg, CANDY.sun.bg, CANDY.pink.bg];
 
 function Step({ icon, text, index }: { icon: IconName; text: string; index: number }) {
   const light = useLight();
@@ -53,7 +54,7 @@ function Step({ icon, text, index }: { icon: IconName; text: string; index: numb
           boxShadow: `0px 3px 0px 0px ${light.shadow}`,
         }}
       >
-        <Icon name={icon} color="#221B45" size={22} strokeWidth={2.6} filled={icon !== 'clock'} />
+        <Icon name={icon} color={CARD.ink} size={22} strokeWidth={2.6} filled={icon !== 'clock'} />
       </View>
       <T v="title" style={{ flex: 1 }}>
         {text}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CARD, GROUND, LIGHTS, SIGNAL, TILES } from './palette';
+import { CANDY, CARD, LIGHTS, PODIUM, SIGNAL, SUNNY, TILES, TINTS, WHITE } from './palette';
 
 const rgb = (hex: string): [number, number, number] => {
   const n = parseInt(hex.replace('#', ''), 16);
@@ -82,12 +82,25 @@ describe('colour contrast (WCAG AA)', () => {
     }
   });
 
-  it('the run ground and feedback fills are legible', () => {
-    for (const bg of [GROUND.field, GROUND.raised, GROUND.hover]) {
-      expect(contrast(GROUND.ink, bg)).toBeGreaterThanOrEqual(AA);
-      expect(contrast(GROUND.muted, bg)).toBeGreaterThanOrEqual(AA);
-    }
+  it('feedback fills are legible', () => {
     expect(contrast(SIGNAL.onCorrect, SIGNAL.correct)).toBeGreaterThanOrEqual(AA);
     expect(contrast(SIGNAL.onWrong, SIGNAL.wrong)).toBeGreaterThanOrEqual(AA);
+    expect(contrast(SIGNAL.onWarn, SIGNAL.warn), 'the last five seconds').toBeGreaterThanOrEqual(AA);
+  });
+
+  it('tile letters, tints, podium blocks and Sunny-coloured buttons are legible', () => {
+    for (const tile of TILES) expect(contrast(tile.lip, WHITE), `letter ${tile.lip} on its white badge`).toBeGreaterThanOrEqual(AA);
+    for (const bg of [TINTS.sky, TINTS.butter, TINTS.blush, TINTS.peach]) {
+      expect(contrast(CARD.ink, bg), `ink on ${bg}`).toBeGreaterThanOrEqual(AA);
+    }
+    expect(contrast(TINTS.onPeach, TINTS.peach), 'too slow').toBeGreaterThanOrEqual(AA);
+    for (const block of PODIUM) expect(contrast(block.ink, block.bg), `podium ${block.bg}`).toBeGreaterThanOrEqual(AA);
+    expect(contrast(SUNNY.ink, SUNNY.body)).toBeGreaterThanOrEqual(AA);
+  });
+
+  it('icons drawn on candy swatches stand out', () => {
+    for (const { bg } of Object.values(CANDY)) {
+      expect(contrast(CARD.ink, bg), `icon on ${bg}`).toBeGreaterThanOrEqual(NON_TEXT);
+    }
   });
 });

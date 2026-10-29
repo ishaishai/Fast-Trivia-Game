@@ -26,6 +26,7 @@ import { useSettings, type MotionPref } from '@/stores/settings';
 import { usePreviewSheet } from '@/stores/ui';
 import { useLayout } from '@/theme/layout';
 import { useLight } from '@/theme/LightProvider';
+import { CARD, TINTS, WHITE } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 
 export default function Me() {
@@ -48,9 +49,9 @@ export default function Me() {
   const wide = layout.width >= 900;
 
   const bubbles: { label: string; value: string; icon: IconName; bg: string }[] = [
-    { label: copy.you.games, value: stats ? num(stats.runs) : '—', icon: 'play', bg: '#BFE3FF' },
-    { label: copy.you.best, value: stats?.bestScore != null ? signed(stats.bestScore) : '—', icon: 'star', bg: '#FFE7A3' },
-    { label: copy.you.crowns, value: stats ? num(stats.crowns) : '—', icon: 'crown', bg: '#FFD3E3' },
+    { label: copy.you.games, value: stats ? num(stats.runs) : '—', icon: 'play', bg: TINTS.sky },
+    { label: copy.you.best, value: stats?.bestScore != null ? signed(stats.bestScore) : '—', icon: 'star', bg: TINTS.butter },
+    { label: copy.you.crowns, value: stats ? num(stats.crowns) : '—', icon: 'crown', bg: TINTS.blush },
   ];
 
   return (
@@ -65,7 +66,7 @@ export default function Me() {
               <Card contentStyle={{ gap: 16, alignItems: 'center' }}>
                 <Float amplitude={6}>
                   <View style={{ borderRadius: 80, boxShadow: `0px 6px 0px 0px ${light.shadow}` }}>
-                    <Avatar seed={profile.avatarSeed} size={wide ? 140 : 112} ring="#FFFFFF" />
+                    <Avatar seed={profile.avatarSeed} size={wide ? 140 : 112} ring={WHITE} />
                   </View>
                 </Float>
                 <View style={{ alignItems: 'center', gap: 4, alignSelf: 'stretch' }}>
@@ -82,7 +83,7 @@ export default function Me() {
                   {bubbles.map((b, i) => (
                     <PopIn key={b.label} index={i} delay={200} from={0.5} style={{ flex: 1 }}>
                       <View style={{ backgroundColor: b.bg, borderRadius: 20, paddingVertical: 12, alignItems: 'center', gap: 2 }}>
-                        <Icon name={b.icon} color="#221B45" size={20} strokeWidth={2.4} filled />
+                        <Icon name={b.icon} color={CARD.ink} size={20} strokeWidth={2.4} filled />
                         <T v="m" fit={0.6} style={{ fontFamily: FONTS.num }}>
                           {b.value}
                         </T>

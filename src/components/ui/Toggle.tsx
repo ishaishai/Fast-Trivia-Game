@@ -3,7 +3,7 @@ import { ScrollView, View, type LayoutRectangle } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { onCard, useLight } from '@/theme/LightProvider';
 import { springs, useMotionOK } from '@/theme/motion';
-import { SIGNAL } from '@/theme/palette';
+import { LIPS, SIGNAL, WHITE } from '@/theme/palette';
 import { Tap } from './Tap';
 import { T } from './Text';
 
@@ -27,7 +27,7 @@ export function Toggle({
   useEffect(() => {
     on.set(motion ? withSpring(value ? 1 : 0, springs.pop) : withTiming(value ? 1 : 0, { duration: 120 }));
   }, [motion, on, value]);
-  const off = onCard(light) ? '#CFC6EC' : light.deep;
+  const off = onCard(light) ? LIPS.track : light.deep;
   const track = useAnimatedStyle(() => ({ backgroundColor: interpolateColor(Math.min(1, Math.max(0, on.value)), [0, 1], [off, SIGNAL.correct]) }));
   const knob = useAnimatedStyle(() => ({ transform: [{ translateX: on.value * 24 }] }));
   return (
@@ -49,7 +49,7 @@ export function Toggle({
         ) : null}
       </View>
       <Animated.View style={[{ width: 58, height: 34, borderRadius: 999, padding: 4 }, track]}>
-        <Animated.View style={[{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#FFFFFF', boxShadow: '0px 2px 0px 0px rgba(0, 0, 0, 0.18)' }, knob]} />
+        <Animated.View style={[{ width: 26, height: 26, borderRadius: 13, backgroundColor: WHITE, boxShadow: '0px 2px 0px 0px rgba(0, 0, 0, 0.18)' }, knob]} />
       </Animated.View>
     </Tap>
   );
@@ -101,7 +101,7 @@ export function Segmented<V extends string>({
       {active ? (
         <Animated.View
           pointerEvents="none"
-          style={[{ position: 'absolute', top: 4, bottom: 4, left: 0, borderRadius: 999, backgroundColor: '#FFFFFF', boxShadow: `0px 3px 0px 0px ${light.shadow}` }, pill]}
+          style={[{ position: 'absolute', top: 4, bottom: 4, left: 0, borderRadius: 999, backgroundColor: WHITE, boxShadow: `0px 3px 0px 0px ${light.shadow}` }, pill]}
         />
       ) : null}
       {options.map((o) => {

@@ -1,17 +1,9 @@
 import { useEffect, type ReactNode } from 'react';
-import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { onCard, useLight } from '@/theme/LightProvider';
 import { useMotionOK } from '@/theme/motion';
-import { SIGNAL } from '@/theme/palette';
+import { SIGNAL, WHITE } from '@/theme/palette';
 import { Icon, type IconName } from '../icons';
 import { T } from './Text';
 
@@ -52,7 +44,7 @@ export function Chip({
   const light = useLight();
   const card = onCard(light);
   const bg =
-    tone === 'sun' ? light.sun : tone === 'good' ? SIGNAL.correct : tone === 'solid' ? (card ? light.card.deep : '#FFFFFF') : 'transparent';
+    tone === 'sun' ? light.sun : tone === 'good' ? SIGNAL.correct : tone === 'solid' ? (card ? light.card.deep : WHITE) : 'transparent';
   const fg = tone === 'sun' ? light.onSun : tone === 'good' ? SIGNAL.onCorrect : tone === 'solid' ? light.card.ink : light.ink;
   return (
     <View
@@ -94,7 +86,7 @@ export function Badge({ count, style }: { count: number | string; style?: StyleP
           borderRadius: 13,
           backgroundColor: light.sun,
           borderWidth: 2.5,
-          borderColor: '#FFFFFF',
+          borderColor: WHITE,
           alignItems: 'center',
           justifyContent: 'center',
         },
@@ -103,19 +95,6 @@ export function Badge({ count, style }: { count: number | string; style?: StyleP
     >
       <T v="label" color={light.onSun} style={{ fontSize: 13, lineHeight: 16 }}>
         {String(count)}
-      </T>
-    </View>
-  );
-}
-
-/** Eyebrow: a small label that names what follows. */
-export function Eyebrow({ children, color, style }: { children: ReactNode; color?: string; style?: StyleProp<ViewStyle> }) {
-  const light = useLight();
-  return (
-    <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 8 }, style]}>
-      <Icon name="sparkle" color={color ?? light.sunText} size={14} filled />
-      <T v="label" color={color ?? light.ink}>
-        {children}
       </T>
     </View>
   );
@@ -132,29 +111,4 @@ export function Hairline({ color, vertical, style }: { color?: string; vertical?
       ]}
     />
   );
-}
-
-/** Film grain over a surface — the tactile layer that keeps flat colour from feeling flat. */
-export function Grain({ opacity = 1 }: { opacity?: number }) {
-  return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity }]} aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Image source={require('../../../assets/grain.png')} resizeMode="repeat" style={{ width: '100%', height: '100%' }} />
-    </View>
-  );
-}
-
-/** Horizontal shake used for wrong answers. */
-export function useShake() {
-  const x = useSharedValue(0);
-  const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
-  const shake = () => {
-    x.set(withSequence(
-      withTiming(-7, { duration: 45 }),
-      withTiming(7, { duration: 70 }),
-      withTiming(-5, { duration: 60 }),
-      withTiming(4, { duration: 55 }),
-      withTiming(0, { duration: 50 }),
-    ));
-  };
-  return { style, shake };
 }

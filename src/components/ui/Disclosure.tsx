@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { onCard, useLight } from '@/theme/LightProvider';
 import { springs } from '@/theme/motion';
+import { WHITE } from '@/theme/palette';
 import { Icon } from '../icons';
 import { PopIn } from '../motion/Playful';
 import { Tap } from './Tap';
@@ -17,7 +18,7 @@ export function Disclosure({ title, children, initiallyOpen = false }: { title: 
     turn.set(withSpring(open ? 1 : 0, springs.pop));
   }, [open, turn]);
   const chevron = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.value * 180}deg` }] }));
-  const bg = onCard(light) ? light.deep : '#FFFFFF';
+  const bg = onCard(light) ? light.deep : WHITE;
   return (
     <View style={{ gap: 12 }}>
       <Tap

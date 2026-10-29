@@ -30,7 +30,7 @@ import { dayLabel, num, ordinal, seconds, signed } from '@/lib/format';
 import { usePracticeResult } from '@/stores/practice';
 import { useLayout } from '@/theme/layout';
 import { LightScope, useLight } from '@/theme/LightProvider';
-import { CARD, SIGNAL } from '@/theme/palette';
+import { CARD, SIGNAL, SUNNY, TINTS, WHITE } from '@/theme/palette';
 import { radius } from '@/theme/shape';
 
 export default function ResultsRoute() {
@@ -174,7 +174,7 @@ function ScoreCard({ score, mood, title, date, summary }: { score: number; mood:
   const tally: { icon: IconName; count: number; label: string; bg: string; fg: string }[] = [
     { icon: 'check', count: totals.correct, label: 'right', bg: SIGNAL.correct, fg: SIGNAL.onCorrect },
     { icon: 'cross', count: totals.wrong, label: 'wrong', bg: SIGNAL.wrong, fg: SIGNAL.onWrong },
-    { icon: 'clock', count: totals.silent, label: 'too slow', bg: '#FFE1C2', fg: '#7A2E00' },
+    { icon: 'clock', count: totals.silent, label: 'too slow', bg: TINTS.peach, fg: TINTS.onPeach },
     { icon: 'skip', count: totals.skips, label: 'skipped', bg: CARD.deep, fg: CARD.ink },
   ];
   const big = layout.isPhone ? 84 : 112;
@@ -242,8 +242,8 @@ function RankCard({ rank, total, crowned, final, gap }: { rank: number; total: n
     <Card tone={crowned ? 'sun' : 'white'} contentStyle={{ gap: 10 }}>
       {crowned ? (
         <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 12 }, crownStyle]}>
-          <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="crown" color="#E09A00" size={32} strokeWidth={2.4} filled />
+          <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: WHITE, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="crown" color={SUNNY.crown} size={32} strokeWidth={2.4} filled />
           </View>
           <T v="m" color={light.onSun} style={{ flex: 1 }}>
             {final ? 'You won! The crown is yours.' : 'You’re on top!'}
@@ -281,7 +281,7 @@ function ReviewRow({ item }: { item: ReviewItem }) {
       : outcome === 'wrong'
         ? { bg: SIGNAL.wrong, fg: SIGNAL.onWrong, icon: 'cross' as const, label: 'Wrong' }
         : outcome === 'silent'
-          ? { bg: '#FFE1C2', fg: '#7A2E00', icon: 'clock' as const, label: 'Too slow' }
+          ? { bg: TINTS.peach, fg: TINTS.onPeach, icon: 'clock' as const, label: 'Too slow' }
           : outcome === 'skipped'
             ? { bg: light.deep, fg: light.ink, icon: 'skip' as const, label: copy.run.skipped }
             : { bg: light.deep, fg: light.muted, icon: 'clock' as const, label: 'Not scored' };

@@ -6,7 +6,7 @@ import { num, signed } from '@/lib/format';
 import type { RunPhase } from '@/run/useRunController';
 import { INTRO_STEP_MS } from '@/run/windows';
 import { springs, useMotionOK } from '@/theme/motion';
-import { CARD, SIGNAL, type Light } from '@/theme/palette';
+import { CARD, SIGNAL, SUNNY, TINTS, WHITE, type Light } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { Icon } from '../icons';
 import { Odometer } from '../motion/Kinetic';
@@ -15,9 +15,9 @@ import { IconButton } from '../ui/Button';
 import { LiveDot } from '../ui/bits';
 import { T } from '../ui/Text';
 
-const PILL = { backgroundColor: '#FFFFFF', borderRadius: 999, boxShadow: '0px 4px 0px 0px rgba(34, 27, 69, 0.18)' } as const;
+const PILL = { backgroundColor: WHITE, borderRadius: 999, boxShadow: '0px 4px 0px 0px rgba(34, 27, 69, 0.18)' } as const;
 
-/** Quit, the game's name, and sound. */
+/** Quit and sound at the ends; in between, the game's name — or, on a phone mid-game, the clock and score. */
 export function RunTopBar({
   title,
   practice,
@@ -25,6 +25,7 @@ export function RunTopBar({
   onSound,
   onQuit,
   canQuit,
+  children,
 }: {
   title: string;
   practice: boolean;
@@ -32,18 +33,23 @@ export function RunTopBar({
   onSound: () => void;
   onQuit: () => void;
   canQuit: boolean;
+  children?: ReactNode;
 }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       {canQuit ? <IconButton icon="close" onPress={onQuit} accessibilityLabel={copy.run.quit} /> : <View style={{ width: 44 }} />}
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        <View style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: 36, paddingHorizontal: 14, maxWidth: '100%' }]}>
-          {practice ? <Icon name="sparkle" color={CARD.sunText} size={14} filled /> : <LiveDot color={SIGNAL.wrong} size={7} />}
-          <T v="label" color={CARD.ink} numberOfLines={1} style={{ flexShrink: 1 }}>
-            {practice ? copy.run.practiceTag : title}
-          </T>
+      {children ? (
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>{children}</View>
+      ) : (
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <View style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: 36, paddingHorizontal: 14, maxWidth: '100%' }]}>
+            {practice ? <Icon name="sparkle" color={CARD.sunText} size={14} filled /> : <LiveDot color={SIGNAL.wrong} size={7} />}
+            <T v="label" color={CARD.ink} numberOfLines={1} style={{ flexShrink: 1 }}>
+              {practice ? copy.run.practiceTag : title}
+            </T>
+          </View>
         </View>
-      </View>
+      )}
       <IconButton icon={sound ? 'sound' : 'mute'} onPress={onSound} accessibilityLabel={sound ? 'Mute sounds' : 'Turn sounds on'} />
     </View>
   );
@@ -57,13 +63,13 @@ export function RunClock({ read, phase, size }: { read: () => number; phase: Run
     return () => clearInterval(id);
   }, [read, phase]);
   const urgent = left <= 5 && phase !== 'ready' && phase !== 'intro';
-  const ink = urgent ? '#3D1A00' : CARD.ink;
+  const ink = urgent ? SIGNAL.onWarn : CARD.ink;
   return (
     <Pulse active={urgent} scale={1.08} period={1000}>
       <View
         accessible
         accessibilityLabel={`${left} seconds left`}
-        style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: size, paddingHorizontal: size * 0.32, backgroundColor: urgent ? SIGNAL.warn : '#FFFFFF' }]}
+        style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: size, paddingHorizontal: size * 0.32, backgroundColor: urgent ? SIGNAL.warn : WHITE }]}
       >
         <Icon name="clock" color={ink} size={size * 0.46} strokeWidth={2.6} />
         <T v="m" color={ink} style={{ fontFamily: FONTS.num, fontSize: size * 0.5, lineHeight: size * 0.62, minWidth: size * 0.6 }}>
@@ -88,12 +94,17 @@ export const RunScore = forwardRef<
   }
 >(function RunScore({ score, rank, rankDelta, streak, lastDelta, size }, ref) {
   return (
-    <View style={{ alignItems: 'flex-end', gap: 6 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {lastDelta ? <DeltaPop key={lastDelta.key} value={lastDelta.value} /> : null}
+    <View style={{ alignItems: 'flex-end' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* Hung off the pill so a +3 never shoves the layout about. */}
+        {lastDelta ? (
+          <View pointerEvents="none" style={{ position: 'absolute', right: '100%', marginRight: 8, top: 0, bottom: 0, justifyContent: 'center' }}>
+            <DeltaPop key={lastDelta.key} value={lastDelta.value} />
+          </View>
+        ) : null}
         <View ref={ref} collapsable={false} style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: size, paddingLeft: size * 0.24, paddingRight: size * 0.34 }]}>
           <Bump trigger={lastDelta?.key ?? 0} good={(lastDelta?.value ?? 0) > 0}>
-            <Icon name="star" color="#FFB627" size={size * 0.56} strokeWidth={2} filled />
+            <Icon name="star" color={SUNNY.body} size={size * 0.56} strokeWidth={2} filled />
           </Bump>
           <Odometer
             value={signed(score)}
@@ -103,11 +114,11 @@ export const RunScore = forwardRef<
         </View>
       </View>
       {streak >= 3 || rank !== null ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ position: 'absolute', top: size + 8, right: 0, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {streak >= 3 ? (
-            <View style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 4, height: 26, paddingHorizontal: 10, backgroundColor: '#FFE1C2' }]}>
-              <Icon name="fire" color="#E8590C" size={14} filled />
-              <T v="label" color="#7A2E00" style={{ fontSize: 13 }}>
+            <View style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 4, height: 26, paddingHorizontal: 10, backgroundColor: TINTS.peach }]}>
+              <Icon name="fire" color={SIGNAL.warn} size={14} filled />
+              <T v="label" color={TINTS.onPeach} style={{ fontSize: 13 }}>
                 {copy.run.streak(streak)}
               </T>
             </View>
@@ -209,7 +220,7 @@ function Bubble({ size, children }: { size: number; children: string }) {
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: WHITE,
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: '0px 6px 0px 0px rgba(34, 27, 69, 0.2)',

@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reani
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { useLight } from '@/theme/LightProvider';
 import { loops } from '@/theme/motion';
-import type { Decor, Light } from '@/theme/palette';
+import { DECOR, WHITE, type Decor, type Light } from '@/theme/palette';
 import { useAmbientClock } from '../motion/Playful';
 import { Gradient } from '../ui/Gradient';
 
@@ -102,10 +102,10 @@ function Cloud({ t, top, left, size, phase }: Spot & { t: SharedValue<number> })
   return (
     <Animated.View style={[{ position: 'absolute', top, left }, animated]}>
       <Svg width={size} height={size * 0.5} viewBox="0 0 120 60">
-        <Rect x="8" y="30" width="104" height="26" rx="13" fill="#FFFFFF" opacity={0.9} />
-        <Circle cx="38" cy="32" r="18" fill="#FFFFFF" opacity={0.9} />
-        <Circle cx="66" cy="26" r="22" fill="#FFFFFF" opacity={0.9} />
-        <Circle cx="92" cy="36" r="14" fill="#FFFFFF" opacity={0.9} />
+        <Rect x="8" y="30" width="104" height="26" rx="13" fill={WHITE} opacity={0.9} />
+        <Circle cx="38" cy="32" r="18" fill={WHITE} opacity={0.9} />
+        <Circle cx="66" cy="26" r="22" fill={WHITE} opacity={0.9} />
+        <Circle cx="92" cy="36" r="14" fill={WHITE} opacity={0.9} />
       </Svg>
     </Animated.View>
   );
@@ -122,7 +122,7 @@ function Sunburst({ t }: { t: SharedValue<number> }) {
   return (
     <Animated.View style={[{ position: 'absolute', top: -260, right: -260, width: 560, height: 560 }, animated]}>
       <Svg width={560} height={560} viewBox="0 0 200 200">
-        <Path d={rays} fill="#FFFFFF" opacity={0.16} />
+        <Path d={rays} fill={WHITE} opacity={0.16} />
       </Svg>
     </Animated.View>
   );
@@ -139,7 +139,7 @@ function Sparkle({ t, top, left, size, phase }: Spot & { t: SharedValue<number> 
   return (
     <Animated.View style={[{ position: 'absolute', top, left }, animated]}>
       <Svg width={size} height={size} viewBox="0 0 24 24">
-        <Path d={SPARKLE} fill="#FFF3C4" />
+        <Path d={SPARKLE} fill={DECOR.sparkle} />
       </Svg>
     </Animated.View>
   );
@@ -148,14 +148,14 @@ function Sparkle({ t, top, left, size, phase }: Spot & { t: SharedValue<number> 
 function Star({ t, top, left, size, phase }: Spot & { t: SharedValue<number> }) {
   const twinkles = loops.drift / loops.twinkle;
   const animated = useAnimatedStyle(() => ({ opacity: 0.3 + Math.abs(Math.sin((t.value * twinkles + phase) * Math.PI)) * 0.7 }));
-  return <Animated.View style={[{ position: 'absolute', top, left, width: size, height: size, borderRadius: size, backgroundColor: '#FFFFFF' }, animated]} />;
+  return <Animated.View style={[{ position: 'absolute', top, left, width: size, height: size, borderRadius: size, backgroundColor: WHITE }, animated]} />;
 }
 
 function Moon() {
   return (
     <View style={{ position: 'absolute', top: 56, right: 28 }}>
       <Svg width={46} height={46} viewBox="0 0 46 46">
-        <Path d="M30 4a19 19 0 1 0 12 30A16 16 0 0 1 30 4z" fill="#FFE9A8" opacity={0.85} />
+        <Path d="M30 4a19 19 0 1 0 12 30A16 16 0 0 1 30 4z" fill={DECOR.moon} opacity={0.85} />
       </Svg>
     </View>
   );

@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { useLight } from '@/theme/LightProvider';
+import { SUNNY } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { T } from '../ui/Text';
 import { Mark } from './Mark';
@@ -16,7 +17,7 @@ export function Logo({ size = 18, color, sun }: LogoProps) {
   const ink = color ?? light.ink;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.4 }} accessible accessibilityLabel="Meridian">
-      <Mark size={size * 1.9} sun={sun ?? light.sun} line="#3A2200" />
+      <Mark size={size * 1.9} sun={sun ?? light.sun} line={SUNNY.face} />
       <T
         v="label"
         color={ink}
