@@ -9,6 +9,7 @@ import { haptic } from '@/audio/haptics';
 import { play, preloadSounds } from '@/audio/sound';
 import { sleep } from '@/lib/emitter';
 import type { RunSource } from './sources';
+import { ENTER_MS, REVEAL_MS } from './windows';
 
 /**
  * ready → starting → intro → live ⇄ (pending → reveal → exit → enter) → sunset
@@ -44,9 +45,6 @@ export interface RunView {
   resumed: boolean;
   lastDelta: { value: number; key: number } | null;
 }
-
-const REVEAL_MS = 320;
-const ENTER_MS = 180;
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 

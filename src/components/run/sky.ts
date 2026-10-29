@@ -6,22 +6,25 @@ import { LIGHTS } from '@/theme/palette';
 
 /** Where each light begins and ends across a run (0 = sunrise, 1 = midnight). */
 export const SKY_STOPS = [0, 0.2, 0.3, 0.6, 0.7, 0.88, 1];
-export const SKY_FIELD = ['firstlight', 'firstlight', 'zenith', 'zenith', 'bluehour', 'midnight', 'midnight'].map(
-  (k) => LIGHTS[k as LightState].field,
-);
-export const SKY_DEEP = ['firstlight', 'firstlight', 'zenith', 'zenith', 'bluehour', 'midnight', 'midnight'].map(
-  (k) => LIGHTS[k as LightState].deep,
-);
-export const SKY_SUN = ['firstlight', 'firstlight', 'zenith', 'zenith', 'bluehour', 'midnight', 'midnight'].map(
-  (k) => LIGHTS[k as LightState].sun,
-);
+const STOP_LIGHTS: LightState[] = ['firstlight', 'firstlight', 'zenith', 'zenith', 'bluehour', 'midnight', 'midnight'];
+export const SKY_SUN = STOP_LIGHTS.map((k) => LIGHTS[k].sun);
 
-/** Text flips from dark ink to light ink in one step, right where the sky turns blue. */
-export const INK_FLIP = 0.25;
+/**
+ * The run's sky is the four worlds' gradients stacked: morning underneath,
+ * each later one fading in over it across its stretch of the run.
+ */
+export const SKY_LAYERS: { light: LightState; from: number; to: number }[] = [
+  { light: 'zenith', from: 0.2, to: 0.3 },
+  { light: 'bluehour', from: 0.6, to: 0.7 },
+  { light: 'midnight', from: 0.7, to: 0.88 },
+];
+
+/** The status bar turns light where the sky turns dark. */
+export const INK_FLIP = 0.65;
 
 export function lightAtProgress(p: number): LightState {
-  if (p < INK_FLIP) return 'firstlight';
-  if (p < 0.65) return 'zenith';
+  if (p < 0.25) return 'firstlight';
+  if (p < INK_FLIP) return 'zenith';
   if (p < 0.85) return 'bluehour';
   return 'midnight';
 }
@@ -32,8 +35,8 @@ export function useRunLight(day: SharedValue<number>): LightState {
   useAnimatedReaction(
     () => {
       const p = day.value;
-      if (p < INK_FLIP) return 0;
-      if (p < 0.65) return 1;
+      if (p < 0.25) return 0;
+      if (p < INK_FLIP) return 1;
       if (p < 0.85) return 2;
       return 3;
     },

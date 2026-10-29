@@ -5,8 +5,10 @@ import { CATEGORIES } from '@shared/questions/categories';
 import type { PublicQuestion } from '@shared/types';
 import { copy } from '@/copy/en';
 import type { Feedback, RunPhase } from '@/run/useRunController';
-import { GROUND } from '@/theme/palette';
-import { FONTS } from '@/theme/typography';
+import { ENTER_MS, EXIT_MS } from '@/run/windows';
+import { CardScope } from '@/theme/LightProvider';
+import { CARD } from '@/theme/palette';
+import { Chip } from '../ui/bits';
 import { T } from '../ui/Text';
 import { AnswerOption, type OptionState } from './AnswerOption';
 
@@ -19,15 +21,15 @@ function optionState(i: number, feedback: Feedback | null): OptionState {
   return 'dim';
 }
 
-/** The question and its answers, on the run's fixed dark ground. */
+/** The question on a white card, and its answers as big coloured tiles. */
 export function QuestionBlock({
   question,
   questionKey,
   phase,
   feedback,
   onAnswer,
+  onCorrect,
   wide,
-  accent,
   fact,
 }: {
   question: PublicQuestion | null;
@@ -35,54 +37,47 @@ export function QuestionBlock({
   phase: RunPhase;
   feedback: Feedback | null;
   onAnswer: (i: number) => void;
+  onCorrect?: (rect: { x: number; y: number; width: number; height: number }) => void;
   wide: boolean;
-  accent: string;
   fact?: string;
 }) {
   const shown = useSharedValue(0);
   const visible = phase === 'enter' || phase === 'live' || phase === 'pending' || phase === 'reveal';
   useEffect(() => {
-    if (phase === 'exit' || phase === 'sunset') shown.value = withTiming(0, { duration: 100 });
-    else if (visible) shown.value = withTiming(1, { duration: 180, easing: Easing.out(Easing.cubic) });
-    else shown.value = 0;
+    if (phase === 'exit' || phase === 'sunset') shown.set(withTiming(0, { duration: EXIT_MS }));
+    else if (visible) shown.set(withTiming(1, { duration: ENTER_MS, easing: Easing.out(Easing.cubic) }));
+    else shown.set(0);
   }, [phase, questionKey, shown, visible]);
   const block = useAnimatedStyle(() => ({ opacity: shown.value, transform: [{ translateY: (1 - shown.value) * 12 }] }));
 
   if (!question) return <View style={{ flex: 1 }} />;
   const n = question.options.length;
   const enabled = phase === 'live';
-  const textSize = question.text.length <= 34 ? (wide ? 46 : 32) : question.text.length <= 52 ? (wide ? 40 : 28) : wide ? 34 : 25;
+  const textSize = question.text.length <= 34 ? (wide ? 40 : 28) : question.text.length <= 60 ? (wide ? 34 : 24) : wide ? 30 : 21;
   const pairs = n === 2 || (wide && n === 4);
   const rows: number[][] = pairs ? (n === 2 ? [[0, 1]] : [[0, 1], [2, 3]]) : question.options.map((_, i) => [i]);
 
   return (
-    <Animated.View style={[{ gap: wide ? 28 : 20 }, block]} key={questionKey}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <T v="label" color={GROUND.muted}>
-          Q{question.seq + 1}
-        </T>
-        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: accent }} />
-        <T v="label" color={GROUND.ink}>
-          {CATEGORIES[question.category].label}
-        </T>
-        {question.trueFalse ? (
-          <View style={{ paddingHorizontal: 10, height: 22, borderRadius: 11, borderWidth: 1, borderColor: GROUND.line, justifyContent: 'center' }}>
-            <T v="label" color={GROUND.muted} style={{ fontSize: 10 }}>
-              {copy.run.trueFalse}
-            </T>
+    <Animated.View style={[{ gap: wide ? 20 : 14 }, block]} key={questionKey}>
+      <View style={{ backgroundColor: CARD.field, borderRadius: 26, padding: wide ? 28 : 18, gap: 12, boxShadow: '0px 6px 0px 0px rgba(34, 27, 69, 0.18)' }}>
+        <CardScope>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Chip tone="sun">{`Q${question.seq + 1}`}</Chip>
+            <Chip>{CATEGORIES[question.category].label}</Chip>
+            {question.trueFalse ? <Chip tone="line">{copy.run.trueFalse}</Chip> : null}
           </View>
-        ) : null}
+          <T
+            v="question"
+            color={CARD.ink}
+            accessibilityRole="header"
+            accessibilityLiveRegion="polite"
+            style={{ fontSize: textSize, lineHeight: Math.round(textSize * 1.2), maxWidth: 900 }}
+          >
+            {question.text}
+          </T>
+        </CardScope>
       </View>
-      <T
-        v="question"
-        color={GROUND.ink}
-        accessibilityRole="header"
-        accessibilityLiveRegion="polite"
-        style={{ fontSize: textSize, lineHeight: Math.round(textSize * 1.14), fontFamily: FONTS.textBold, maxWidth: 900 }}
-      >
-        {question.text}
-      </T>
-      <View style={{ gap: 10 }}>
+      <View style={{ gap: 8 }}>
         {rows.map((row, r) => (
           <View key={r} style={{ flexDirection: row.length > 1 ? 'row' : 'column', gap: 10 }}>
             {row.map((i) => (
@@ -94,19 +89,22 @@ export function QuestionBlock({
                 label={question.options[i]}
                 state={optionState(i, feedback)}
                 enabled={enabled}
+                shown={visible}
                 onPress={() => onAnswer(i)}
+                onCorrect={onCorrect}
                 tall={n === 2}
                 grow={row.length > 1}
-                accent={accent}
               />
             ))}
           </View>
         ))}
       </View>
       {fact && feedback && feedback.outcome !== 'pending' ? (
-        <T v="bodyS" color={GROUND.muted} style={{ maxWidth: 640 }}>
-          {fact}
-        </T>
+        <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.92)', borderRadius: 18, padding: 14 }}>
+          <T v="bodyS" color={CARD.ink} style={{ maxWidth: 640 }}>
+            {fact}
+          </T>
+        </View>
       ) : null}
     </Animated.View>
   );

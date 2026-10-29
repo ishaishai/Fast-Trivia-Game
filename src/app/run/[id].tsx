@@ -1,33 +1,42 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
+import { useAnimatedReaction } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scheduleOnRN } from 'react-native-worklets';
 import { RULES } from '@shared/rules';
 import { SESSIONS, parseCompetitionId, phaseOf } from '@shared/schedule';
 import type { Competition, RunSummary } from '@shared/types';
 import { useBackend } from '@/backend/BackendProvider';
-import { Icon } from '@/components/icons';
+import { Sunny, type Mood } from '@/components/brand/Sunny';
+import { BurstHost, type BurstHandle } from '@/components/fx/PixelBurst';
+import { Icon, type IconName } from '@/components/icons';
+import { PopIn } from '@/components/motion/Playful';
 import { IntroCountdown, RunClock, RunScore, RunTopBar, SunsetTitle } from '@/components/run/Hud';
+import { PixelTimer } from '@/components/run/PixelTimer';
 import { QuestionBlock } from '@/components/run/QuestionBlock';
-import { Horizon, RunSky } from '@/components/run/RunSky';
+import { RunBackdrop, RunSky } from '@/components/run/RunSky';
 import { useRunLight } from '@/components/run/sky';
-import { SkipBank } from '@/components/sky/SkipBank';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge, Chip } from '@/components/ui/bits';
 import { Sheet } from '@/components/ui/Sheet';
-import { Tap } from '@/components/ui/Tap';
 import { T } from '@/components/ui/Text';
 import { copy } from '@/copy/en';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { practiceFact, practiceSource, rankedSource } from '@/run/sources';
 import { useRunController } from '@/run/useRunController';
+import { VISUAL } from '@/run/windows';
 import { useGame } from '@/stores/game';
 import { usePracticeResult } from '@/stores/practice';
 import { useSettings } from '@/stores/settings';
 import { useLayout } from '@/theme/layout';
-import { GROUND, LIGHTS } from '@/theme/palette';
-import { FONTS } from '@/theme/typography';
+import { LightScope } from '@/theme/LightProvider';
+import { CARD, LIGHTS } from '@/theme/palette';
+
+const BURST = ['#FFC83D', '#FFFFFF', '#2BD46A', '#FF5FA2'];
 
 export default function RunRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,6 +58,8 @@ function RunScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets();
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [quitOpen, setQuitOpen] = useState(false);
+  const burst = useRef<BurstHandle>(null);
+  const scorePill = useRef<ComponentRef<typeof View>>(null);
 
   const source = useMemo(
     () => (practice ? practiceSource(relaxed ? RULES.RELAXED_QUESTION_MS : RULES.QUESTION_MS) : rankedSource(backend, id)),
@@ -99,6 +110,15 @@ function RunScreen({ id }: { id: string }) {
     prevRank.current = myRank;
   }, [myRank]);
 
+  // Sunny gets nervous as the moon closes in.
+  const [hurry, setHurry] = useState(false);
+  useAnimatedReaction(
+    () => run.eclipse.value > 0.7,
+    (late, prev) => {
+      if (late !== prev) scheduleOnRN(setHurry, late);
+    },
+  );
+
   // Keyboard play on the web.
   const live = view.phase === 'live';
   useEffect(() => {
@@ -133,165 +153,179 @@ function RunScreen({ id }: { id: string }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [live, quitOpen, run, view.phase, view.question, view.skipsLeft]);
 
+  // A right answer throws a few pixels at the score.
+  const celebrate = useCallback((rect: { x: number; y: number; width: number; height: number }) => {
+    const target = scorePill.current;
+    const fire = (toward: { x: number; y: number } | null) =>
+      burst.current?.fire({ x: rect.x + rect.width * 0.12 + 17, y: rect.y + rect.height / 2, colors: BURST, count: 9, duration: VISUAL.burstMs, toward });
+    if (!target) return fire(null);
+    target.measureInWindow((x, y, w, h) => fire({ x: x + h / 2, y: y + h / 2 }));
+  }, []);
+
   const kind = practice ? null : parseCompetitionId(id)?.kind;
   const title = practice ? copy.run.practice : kind ? SESSIONS[kind].title : 'Meridian';
   const split = layout.splitRun;
-  const skyW = split ? Math.round(layout.width * 0.46) : layout.width;
-  const skyH = split ? layout.height : Math.round(Math.min(Math.max(layout.height * 0.36, 236), 360));
-  const sunSize = split ? Math.min(skyW * 0.28, 230) : Math.min(layout.width * 0.22, 96);
-  const big = split ? Math.min(150, skyW * 0.2) : 64;
-  const groundPad = split ? Math.max(40, layout.width * 0.045) : layout.gutter;
-  const accent = light.sun;
+  const skyW = split ? Math.round(layout.width * 0.44) : layout.width;
+  const skyH = split ? layout.height : Math.round(Math.min(Math.max(layout.height * 0.3, 210), 300));
+  const sunSize = split ? Math.min(skyW * 0.22, 170) : Math.min(layout.width * 0.2, 84);
+  const pill = split ? 60 : 46;
+  const groundPad = split ? Math.max(32, layout.width * 0.04) : layout.gutter;
   const fact = practice && view.question && view.feedback ? practiceFact(view.question.qid) : undefined;
   const closed = competition ? phaseOf(competition, backend.now()) : null;
   const inRun = view.phase !== 'ready' && view.phase !== 'error';
+  const outcome = view.feedback?.outcome;
+  const mood: Mood =
+    view.phase === 'sunset'
+      ? 'sleepy'
+      : outcome === 'correct'
+        ? 'proud'
+        : outcome === 'wrong' || outcome === 'silent'
+          ? 'worried'
+          : hurry && live
+            ? 'wow'
+            : 'happy';
+  const asleep = !inRun || view.phase === 'starting';
 
   return (
-    <View style={{ flex: 1, flexDirection: split ? 'row' : 'column', backgroundColor: GROUND.field }} role="main">
-      <Head>
-        <title>{`${title} — Meridian`}</title>
-      </Head>
-      <StatusBar style={light.statusBar} />
+    <LightScope name={lightName}>
+      <View style={{ flex: 1, flexDirection: split ? 'row' : 'column' }} role="main">
+        <Head>
+          <title>{`${title} — Meridian`}</title>
+        </Head>
+        <StatusBar style={light.statusBar} />
+        <RunBackdrop day={run.day} />
 
-      <RunSky
-        day={run.day}
-        eclipse={run.eclipse}
-        dusk={run.dusk}
-        width={skyW}
-        height={skyH}
-        sunSize={sunSize}
-        phase={view.phase}
-        floor={big * 0.92 + 44}
-        ceiling={insets.top + 64}
-      >
-        <View style={{ flex: 1, paddingTop: insets.top + 14, paddingHorizontal: split ? groundPad * 0.7 : layout.gutter, paddingBottom: 22 }}>
-          <RunTopBar
-            title={title}
-            practice={practice}
-            light={light}
-            sound={sound}
-            onSound={() => setSound(!sound)}
-            onQuit={() => (inRun ? setQuitOpen(true) : router.back())}
-            canQuit={view.phase !== 'sunset'}
-          />
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            {view.phase === 'intro' ? <IntroCountdown light={light} size={split ? 150 : 84} /> : null}
-            {view.phase === 'sunset' ? <SunsetTitle light={light} size={split ? 140 : 76} /> : null}
-          </View>
-          {view.phase !== 'sunset' ? (
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
-              <RunClock read={run.runLeftMs} phase={view.phase} size={big} light={light} />
-              <RunScore
-                score={view.totals.score}
-                rank={practice ? null : myRank}
-                rankDelta={rankDelta}
-                streak={view.totals.streak}
-                lastDelta={view.lastDelta}
-                size={big}
-                light={light}
-              />
-            </View>
-          ) : null}
-        </View>
-      </RunSky>
-
-      <View style={{ flex: 1, backgroundColor: GROUND.field }}>
-        {!split ? <Horizon eclipse={run.eclipse} day={run.day} width={layout.width} /> : null}
-        {split ? (
-          <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: 'rgba(243,244,255,0.10)' }} aria-hidden />
-        ) : null}
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: split ? 'center' : 'flex-start',
-            paddingHorizontal: groundPad,
-            paddingTop: split ? insets.top + 40 : 20,
-            paddingBottom: insets.bottom + 18,
-            gap: 18,
-          }}
-          scrollEnabled={!live}
+        <RunSky
+          day={run.day}
+          eclipse={run.eclipse}
+          dusk={run.dusk}
+          width={skyW}
+          height={skyH}
+          sunSize={sunSize}
+          phase={view.phase}
+          mood={asleep ? 'happy' : mood}
+          floor={pill + 40}
+          ceiling={insets.top + 60}
         >
-          {view.reconnecting ? (
-            <View style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: GROUND.raised }}>
-              <T v="bodyS" color={GROUND.ink}>
-                {copy.run.reconnecting}
-              </T>
-            </View>
-          ) : null}
-
-          {view.phase === 'ready' || view.phase === 'starting' ? (
-            <ReadyPanel
+          <View style={{ flex: 1, paddingTop: insets.top + 10, paddingHorizontal: split ? groundPad * 0.7 : layout.gutter, paddingBottom: 14 }}>
+            <RunTopBar
               title={title}
               practice={practice}
-              relaxed={relaxed}
-              skipsLeft={practice ? RULES.SKIPS_PER_DAY : (day?.skipsLeft ?? RULES.SKIPS_PER_DAY)}
-              starting={view.phase === 'starting'}
-              blocked={!practice && closed !== null && closed !== 'open' ? (closed === 'upcoming' ? 'upcoming' : 'closed') : null}
-              played={!practice && Boolean(day?.played[id]?.status === 'done')}
-              onStart={() => void run.start()}
-              onBack={() => (practice ? router.back() : router.replace(`/competition/${id}`))}
-              accent={accent}
-              wide={split}
-              competitionId={id}
+              sound={sound}
+              onSound={() => setSound(!sound)}
+              onQuit={() => (inRun ? setQuitOpen(true) : router.back())}
+              canQuit={view.phase !== 'sunset'}
             />
-          ) : view.phase === 'error' ? (
-            <ErrorPanel message={view.error ?? ''} code={view.errorCode} competitionId={id} practice={practice} />
-          ) : (
-            <>
-              <QuestionBlock
-                question={view.question}
-                questionKey={view.questionKey}
-                phase={view.phase}
-                feedback={view.feedback}
-                onAnswer={run.answer}
-                wide={split}
-                accent={accent}
-                fact={fact}
-              />
-              <View style={{ flex: 1 }} />
-              <RunFooter
-                skipsLeft={view.skipsLeft}
-                enabled={live && view.skipsLeft > 0}
-                onSkip={run.skip}
-                accent={accent}
-                syncing={view.syncing}
-                practice={practice}
-                showKeys={Platform.OS === 'web' && !layout.isPhone}
-              />
-            </>
-          )}
-        </ScrollView>
-      </View>
+            <View style={{ flex: 1 }} />
+            {view.phase !== 'sunset' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
+                <RunClock read={run.runLeftMs} phase={view.phase} size={pill} />
+                <RunScore
+                  ref={scorePill}
+                  score={view.totals.score}
+                  rank={practice ? null : myRank}
+                  rankDelta={rankDelta}
+                  streak={view.totals.streak}
+                  lastDelta={view.lastDelta}
+                  size={pill}
+                  light={light}
+                />
+              </View>
+            ) : null}
+          </View>
+        </RunSky>
 
-      <Sheet
-        visible={quitOpen}
-        onClose={() => setQuitOpen(false)}
-        title={copy.run.quitTitle}
-        colors={{ bg: GROUND.raised, ink: GROUND.ink, muted: GROUND.muted, line: GROUND.line }}
-      >
-        <T v="body" color={GROUND.muted}>
-          {practice ? 'Practice runs don’t count, so nothing is lost.' : copy.run.quitBody}
-        </T>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-          <Button
-            label={copy.run.keepGoing}
-            onPress={() => setQuitOpen(false)}
-            colors={{ bg: accent, fg: '#0B0C1C', hoverBg: GROUND.ink, hoverFg: '#0B0C1C' }}
-            icon={null}
-          />
-          <Button
-            label={copy.run.quit}
-            variant="ink"
-            onPress={() => {
-              setQuitOpen(false);
-              run.quit();
+        <View style={{ flex: 1 }}>
+          {inRun ? (
+            <View style={{ paddingHorizontal: groundPad, paddingTop: split ? insets.top + 28 : 4 }}>
+              <PixelTimer eclipse={run.eclipse} color={light.sun} track="rgba(255, 255, 255, 0.4)" height={split ? 18 : 14} />
+            </View>
+          ) : null}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: split ? 'center' : 'flex-start',
+              paddingHorizontal: groundPad,
+              paddingTop: split ? 24 : 14,
+              paddingBottom: insets.bottom + 18,
+              gap: 16,
             }}
-            colors={{ bg: 'transparent', fg: GROUND.ink, hoverBg: GROUND.ink, hoverFg: '#0B0C1C' }}
-          />
+            scrollEnabled={!live}
+          >
+            {view.reconnecting ? (
+              <Chip tone="solid" icon="clock">
+                {copy.run.reconnecting}
+              </Chip>
+            ) : null}
+
+            {view.phase === 'ready' || view.phase === 'starting' ? (
+              <ReadyPanel
+                title={title}
+                practice={practice}
+                relaxed={relaxed}
+                skipsLeft={practice ? RULES.SKIPS_PER_DAY : (day?.skipsLeft ?? RULES.SKIPS_PER_DAY)}
+                starting={view.phase === 'starting'}
+                blocked={!practice && closed !== null && closed !== 'open' ? (closed === 'upcoming' ? 'upcoming' : 'closed') : null}
+                played={!practice && Boolean(day?.played[id]?.status === 'done')}
+                onStart={() => void run.start()}
+                onBack={() => (practice ? router.back() : router.replace(`/competition/${id}`))}
+                competitionId={id}
+              />
+            ) : view.phase === 'error' ? (
+              <ErrorPanel message={view.error ?? ''} code={view.errorCode} competitionId={id} practice={practice} />
+            ) : (
+              <>
+                <QuestionBlock
+                  question={view.question}
+                  questionKey={view.questionKey}
+                  phase={view.phase}
+                  feedback={view.feedback}
+                  onAnswer={run.answer}
+                  onCorrect={celebrate}
+                  wide={split}
+                  fact={fact}
+                />
+                <View style={{ flex: 1 }} />
+                <RunFooter
+                  skipsLeft={view.skipsLeft}
+                  enabled={live && view.skipsLeft > 0}
+                  onSkip={run.skip}
+                  syncing={view.syncing}
+                  practice={practice}
+                  showKeys={Platform.OS === 'web' && !layout.isPhone}
+                />
+              </>
+            )}
+          </ScrollView>
+          {/* The countdown and the last word take the stage where the question will be (or was). */}
+          {view.phase === 'intro' || view.phase === 'sunset' ? (
+            <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: '30%', alignItems: 'center', justifyContent: 'center' }}>
+              {view.phase === 'intro' ? <IntroCountdown size={split ? 170 : 128} /> : <SunsetTitle size={split ? 130 : 96} />}
+            </View>
+          ) : null}
         </View>
-      </Sheet>
-    </View>
+
+        <Sheet visible={quitOpen} onClose={() => setQuitOpen(false)} title={copy.run.quitTitle}>
+          <T v="body" muted>
+            {practice ? 'Practice games don’t count, so nothing is lost.' : copy.run.quitBody}
+          </T>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            <Button label={copy.run.keepGoing} onPress={() => setQuitOpen(false)} iconLeft="play" />
+            <Button
+              label={copy.run.quit}
+              variant="ink"
+              onPress={() => {
+                setQuitOpen(false);
+                run.quit();
+              }}
+            />
+          </View>
+        </Sheet>
+
+        <BurstHost ref={burst} />
+      </View>
+    </LightScope>
   );
 }
 
@@ -305,8 +339,6 @@ function ReadyPanel({
   played,
   onStart,
   onBack,
-  accent,
-  wide,
   competitionId,
 }: {
   title: string;
@@ -318,100 +350,96 @@ function ReadyPanel({
   played: boolean;
   onStart: () => void;
   onBack: () => void;
-  accent: string;
-  wide: boolean;
   competitionId: string;
 }) {
-  const layout = useLayout();
-  const size = wide ? Math.min(96, layout.width * 0.06) : 48;
   if (played) {
     return (
-      <View style={{ gap: 18 }}>
-        <T v="label" color={GROUND.muted}>
-          {title}
-        </T>
-        <T v="xl" color={GROUND.ink} style={{ fontSize: size, lineHeight: size * 0.95 }} accessibilityRole="header">
-          You’ve run this one.
-        </T>
-        <T v="bodyL" color={GROUND.muted}>
-          One run per competition — it keeps the crown honest.
-        </T>
-        <Button label={copy.results.eyebrow} href={`/results/${competitionId}`} colors={{ bg: accent, fg: '#0B0C1C', hoverBg: GROUND.ink, hoverFg: '#0B0C1C' }} />
-      </View>
+      <PopIn>
+        <Card contentStyle={{ gap: 14, alignItems: 'center' }}>
+          <Sunny size={96} mood="proud" />
+          <T v="l" align="center" accessibilityRole="header">
+            You’ve played this one!
+          </T>
+          <T v="body" muted align="center">
+            Everyone gets one go, so it’s fair.
+          </T>
+          <Button label={copy.play.myScore} href={`/results/${competitionId}`} />
+        </Card>
+      </PopIn>
     );
   }
   if (blocked) {
     return (
-      <View style={{ gap: 18 }}>
-        <T v="label" color={GROUND.muted}>
-          {title}
-        </T>
-        <T v="xl" color={GROUND.ink} style={{ fontSize: size, lineHeight: size * 0.95 }} accessibilityRole="header">
-          {blocked === 'upcoming' ? 'The doors aren’t open yet.' : 'This one has closed.'}
-        </T>
-        <Button label="Back to the lobby" variant="ink" icon="arrow-left" onPress={onBack} colors={{ bg: 'transparent', fg: GROUND.ink, hoverBg: GROUND.ink, hoverFg: '#0B0C1C' }} />
-      </View>
+      <PopIn>
+        <Card contentStyle={{ gap: 14, alignItems: 'center' }}>
+          <Sunny size={96} mood="sleepy" />
+          <T v="l" align="center" accessibilityRole="header">
+            {blocked === 'upcoming' ? 'Not open yet' : 'This one is over'}
+          </T>
+          <Button label="Back" variant="ink" iconLeft="arrow-left" onPress={onBack} />
+        </Card>
+      </PopIn>
     );
   }
+  const steps = copy.run.readySteps.map((s, i) =>
+    i === 1 && practice && relaxed ? { ...s, text: '6 seconds for each question (relaxed)' } : s,
+  );
   return (
-    <View style={{ gap: wide ? 26 : 18 }}>
-      <T v="label" color={GROUND.muted}>
-        {practice ? `${copy.run.practice} · ${copy.run.practiceNote}` : title}
-      </T>
-      <T v="xl" color={GROUND.ink} style={{ fontSize: size, lineHeight: size * 0.95 }} accessibilityRole="header">
-        {copy.run.ready}
-      </T>
-      <View style={{ gap: 6 }}>
-        <T v="bodyL" color={GROUND.ink}>
-          {practice && relaxed ? '+3 right · −1 wrong · −1 silent · 6 s a question (relaxed)' : copy.run.rulesLine}
-        </T>
-        <T v="body" color={GROUND.muted}>
-          Sixty seconds of answering. The clock pauses between questions, never during them.
-        </T>
-      </View>
-      <SkipBank left={skipsLeft} size="s" color={accent} dimColor={GROUND.line} textColor={GROUND.ink} />
-      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <Button
-          label={copy.run.start}
-          onPress={onStart}
-          loading={starting}
-          colors={{ bg: accent, fg: '#0B0C1C', hoverBg: GROUND.ink, hoverFg: '#0B0C1C' }}
-          icon="play"
-        />
-        {Platform.OS === 'web' ? (
-          <T v="label" color={GROUND.muted}>
-            {copy.run.startHint}
+    <PopIn>
+      <Card contentStyle={{ gap: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <T v="xl" accessibilityRole="header" style={{ flex: 1 }}>
+            {copy.run.readyTitle}
           </T>
-        ) : null}
-      </View>
-      {!practice ? (
-        <T v="bodyS" color={GROUND.muted}>
-          Once the clock starts, this is your one run for {title}. Leaving doesn’t pause it.
-        </T>
-      ) : null}
-    </View>
+          {practice ? <Chip tone="sun">{copy.run.practice}</Chip> : null}
+        </View>
+        <View style={{ gap: 10 }}>
+          {steps.map((step) => (
+            <View key={step.text} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: CARD.deep, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name={step.icon as IconName} color={CARD.ink} size={20} strokeWidth={2.6} filled={step.icon !== 'clock'} />
+              </View>
+              <T v="title" style={{ flex: 1 }}>
+                {step.text}
+              </T>
+            </View>
+          ))}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: CARD.deep, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="skip" color={CARD.ink} size={20} strokeWidth={2.6} />
+            </View>
+            <T v="title" style={{ flex: 1 }}>
+              {practice ? 'Skip any question you like' : `${copy.run.skipsLeft(skipsLeft)}. A skip costs nothing.`}
+            </T>
+          </View>
+        </View>
+        <Button label={copy.run.go} size="xl" iconLeft="play" stretch idle="pulse" onPress={onStart} loading={starting} accessibilityHint={Platform.OS === 'web' ? copy.run.startHint : undefined} />
+        {!practice ? (
+          <T v="bodyS" muted align="center">
+            {copy.run.oneGo(title)}
+          </T>
+        ) : (
+          <T v="bodyS" muted align="center">
+            {copy.run.practiceNote}
+          </T>
+        )}
+      </Card>
+    </PopIn>
   );
 }
 
 function ErrorPanel({ message, code, competitionId, practice }: { message: string; code: string | null; competitionId: string; practice: boolean }) {
   return (
-    <View style={{ gap: 18 }}>
-      <T v="l" color={GROUND.ink} accessibilityRole="header">
+    <Card contentStyle={{ gap: 14, alignItems: 'center' }}>
+      <Sunny size={88} mood="worried" />
+      <T v="m" align="center" accessibilityRole="header">
         {message}
       </T>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-        {code === 'already-played' ? (
-          <Button label={copy.results.eyebrow} href={`/results/${competitionId}`} colors={{ bg: GROUND.ink, fg: '#0B0C1C', hoverBg: '#FFFFFF', hoverFg: '#0B0C1C' }} />
-        ) : null}
-        <Button
-          label={practice ? copy.results.today : 'Back to the lobby'}
-          variant="ink"
-          icon="arrow-left"
-          href={practice ? '/' : `/competition/${competitionId}`}
-          colors={{ bg: 'transparent', fg: GROUND.ink, hoverBg: GROUND.ink, hoverFg: '#0B0C1C' }}
-        />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+        {code === 'already-played' ? <Button label={copy.play.myScore} href={`/results/${competitionId}`} /> : null}
+        <Button label={practice ? 'Home' : 'Back'} variant="ink" iconLeft="arrow-left" href={practice ? '/' : `/competition/${competitionId}`} />
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -419,7 +447,6 @@ function RunFooter({
   skipsLeft,
   enabled,
   onSkip,
-  accent,
   syncing,
   practice,
   showKeys,
@@ -427,49 +454,37 @@ function RunFooter({
   skipsLeft: number;
   enabled: boolean;
   onSkip: () => void;
-  accent: string;
   syncing: boolean;
   practice: boolean;
   showKeys: boolean;
 }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between' }}>
-      <Tap
-        onPress={onSkip}
-        disabled={!enabled}
-        accessibilityRole="button"
-        accessibilityLabel={skipsLeft > 0 ? `${copy.run.skip}. ${copy.run.skipsLeft(skipsLeft)}` : copy.run.noSkips}
-        style={({ hovered, pressed }) => ({
-          height: 50,
-          paddingHorizontal: 20,
-          borderRadius: 999,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 10,
-          borderWidth: 1.5,
-          borderColor: hovered && enabled ? accent : GROUND.line,
-          backgroundColor: pressed && enabled ? GROUND.hover : 'transparent',
-          opacity: enabled || skipsLeft > 0 ? 1 : 0.45,
-        })}
-      >
-        <Icon name="skip" color={GROUND.ink} size={18} />
-        <T v="title" color={GROUND.ink} style={{ fontFamily: FONTS.textBold }}>
-          {skipsLeft > 0 ? copy.run.skip : copy.run.noSkips}
-        </T>
-        {showKeys ? (
-          <View style={{ paddingHorizontal: 7, height: 22, borderRadius: 6, borderWidth: 1, borderColor: GROUND.line, justifyContent: 'center' }}>
-            <T v="label" color={GROUND.muted} style={{ fontSize: 10, letterSpacing: 0.5 }}>
-              S
-            </T>
-          </View>
-        ) : null}
-      </Tap>
-      <View style={{ alignItems: 'flex-end', gap: 6 }}>
-        <SkipBank left={skipsLeft} size="s" color={accent} dimColor={GROUND.line} textColor={GROUND.ink} />
-        <T v="label" color={GROUND.muted} style={{ fontSize: 10 }}>
-          {syncing ? copy.run.syncing : practice ? 'Practice skips' : showKeys ? copy.run.keys : copy.run.skipsLeft(skipsLeft)}
-        </T>
+    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' }}>
+      <View>
+        <Button
+          label={skipsLeft > 0 ? copy.run.skip : copy.run.noSkips}
+          variant="ink"
+          size="m"
+          iconLeft="skip"
+          onPress={onSkip}
+          inert={!enabled && skipsLeft > 0}
+          disabled={skipsLeft === 0}
+          accessibilityLabel={skipsLeft > 0 ? `${copy.run.skip}. ${copy.run.skipsLeft(skipsLeft)}` : copy.run.noSkips}
+        />
+        {skipsLeft > 0 ? <Badge count={skipsLeft} style={{ position: 'absolute', top: -10, right: -10 }} /> : null}
       </View>
+      {syncing ? (
+        <Chip tone="solid" icon="clock">
+          {copy.run.syncing}
+        </Chip>
+      ) : showKeys ? (
+        <Chip tone="solid">{copy.run.keys}</Chip>
+      ) : practice ? (
+        <Chip tone="solid" icon="sparkle">
+          Just for fun
+        </Chip>
+      ) : null}
     </View>
   );
 }
+

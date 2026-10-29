@@ -157,6 +157,17 @@ export const copy = {
     credit: 'Meridian is an original game. Every question written in-house.',
   },
   run: {
+    getReady: 'Get ready!',
+    timesUp: 'Time’s up!',
+    practiceTag: 'Practice · just for fun',
+    readyTitle: 'Ready?',
+    readySteps: [
+      { icon: 'clock', text: '60 seconds to answer as many as you can' },
+      { icon: 'bolt', text: '3 seconds for each question' },
+      { icon: 'star', text: '+3 right, −1 wrong or too slow' },
+    ],
+    oneGo: (title: string) => `You get one go at ${title}. Leaving won’t pause the clock.`,
+    go: 'Start',
     ready: 'Ready when you are.',
     start: 'Start the clock',
     startHint: 'Space or Enter',

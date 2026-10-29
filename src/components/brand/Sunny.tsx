@@ -105,8 +105,8 @@ function Eyes({ mood }: { mood: Mood }) {
       <Circle cx="74.6" cy="53.6" r="1.6" fill="#FFFFFF" />
       {mood === 'worried' ? (
         <G stroke={FACE} strokeWidth="3" strokeLinecap="round">
-          <Path d="M40 45 L52 48" />
-          <Path d="M80 45 L68 48" />
+          <Path d="M40 48 L51 44" />
+          <Path d="M80 48 L69 44" />
         </G>
       ) : null}
     </G>
