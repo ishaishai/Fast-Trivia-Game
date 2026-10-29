@@ -9,8 +9,10 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useLight } from '@/theme/LightProvider';
+import { onCard, useLight } from '@/theme/LightProvider';
 import { useMotionOK } from '@/theme/motion';
+import { SIGNAL } from '@/theme/palette';
+import { Icon, type IconName } from '../icons';
 import { T } from './Text';
 
 /** A pulsing dot for anything happening right now. */
@@ -33,40 +35,45 @@ export function LiveDot({ color, size = 8 }: { color?: string; size?: number }) 
   );
 }
 
-/** Small pill label. */
+/** Small pill label. On the sky a solid chip is white; on a card it is a lavender well. */
 export function Chip({
   children,
-  tone = 'line',
+  tone = 'solid',
   dot,
+  icon,
   style,
 }: {
   children: ReactNode;
-  tone?: 'line' | 'sun' | 'solid';
+  tone?: 'line' | 'sun' | 'solid' | 'good';
   dot?: boolean;
+  icon?: IconName;
   style?: StyleProp<ViewStyle>;
 }) {
   const light = useLight();
-  const bg = tone === 'sun' ? light.sun : tone === 'solid' ? light.raised : 'transparent';
-  const fg = tone === 'sun' ? light.onSun : light.ink;
+  const card = onCard(light);
+  const bg =
+    tone === 'sun' ? light.sun : tone === 'good' ? SIGNAL.correct : tone === 'solid' ? (card ? light.card.deep : '#FFFFFF') : 'transparent';
+  const fg = tone === 'sun' ? light.onSun : tone === 'good' ? SIGNAL.onCorrect : tone === 'solid' ? light.card.ink : light.ink;
   return (
     <View
       style={[
         {
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 8,
+          gap: 6,
           alignSelf: 'flex-start',
           paddingHorizontal: 12,
-          height: 28,
+          height: 30,
           borderRadius: 999,
           backgroundColor: bg,
-          borderWidth: tone === 'line' ? 1 : 0,
+          borderWidth: tone === 'line' ? 1.5 : 0,
           borderColor: light.line,
         },
         style,
       ]}
     >
-      {dot ? <LiveDot color={tone === 'sun' ? light.onSun : light.sun} size={7} /> : null}
+      {dot ? <LiveDot color={tone === 'sun' ? light.onSun : tone === 'solid' ? SIGNAL.wrong : light.sun} size={7} /> : null}
+      {icon ? <Icon name={icon} color={fg} size={16} strokeWidth={2.6} filled={icon === 'star' || icon === 'fire' || icon === 'bolt'} /> : null}
       <T v="label" color={fg}>
         {children}
       </T>
@@ -74,12 +81,39 @@ export function Chip({
   );
 }
 
-/** Eyebrow: a small mono label that names what follows. */
+/** A round count bubble that sits on the corner of something (skips left, new crowns). */
+export function Badge({ count, style }: { count: number | string; style?: StyleProp<ViewStyle> }) {
+  const light = useLight();
+  return (
+    <View
+      style={[
+        {
+          minWidth: 26,
+          height: 26,
+          paddingHorizontal: 7,
+          borderRadius: 13,
+          backgroundColor: light.sun,
+          borderWidth: 2.5,
+          borderColor: '#FFFFFF',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        style,
+      ]}
+    >
+      <T v="label" color={light.onSun} style={{ fontSize: 13, lineHeight: 16 }}>
+        {String(count)}
+      </T>
+    </View>
+  );
+}
+
+/** Eyebrow: a small label that names what follows. */
 export function Eyebrow({ children, color, style }: { children: ReactNode; color?: string; style?: StyleProp<ViewStyle> }) {
   const light = useLight();
   return (
-    <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10 }, style]}>
-      <View style={{ width: 18, height: 1.5, backgroundColor: color ?? light.sun }} />
+    <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 8 }, style]}>
+      <Icon name="sparkle" color={color ?? light.sunText} size={14} filled />
       <T v="label" color={color ?? light.ink}>
         {children}
       </T>

@@ -1,21 +1,26 @@
 import { PixelRatio, Platform, type TextStyle } from 'react-native';
 
 /**
- * Big Shoulders — condensed display numerals for a game made of numbers.
+ * Fredoka — round, chunky and friendly: headings, buttons, numbers, labels.
  * Atkinson Hyperlegible Next — designed to be read at a glance; questions get three seconds.
- * Atkinson Hyperlegible Mono — labels, clocks and data.
  */
 export const FONTS = {
-  thin: 'BigShoulders_100Thin',
-  light: 'BigShoulders_300Light',
-  bold: 'BigShoulders_700Bold',
-  extra: 'BigShoulders_800ExtraBold',
-  black: 'BigShoulders_900Black',
+  display: 'Fredoka_700Bold',
+  displaySemi: 'Fredoka_600SemiBold',
+  displayMedium: 'Fredoka_500Medium',
+  /** numbers; one place to change if they ever get their own face */
+  num: 'Fredoka_700Bold',
   text: 'AtkinsonHyperlegibleNext_400Regular',
   textSemi: 'AtkinsonHyperlegibleNext_600SemiBold',
   textBold: 'AtkinsonHyperlegibleNext_700Bold',
-  mono: 'AtkinsonHyperlegibleMono_400Regular',
-  monoSemi: 'AtkinsonHyperlegibleMono_600SemiBold',
+  // TODO(redesign): old faces mapped onto Fredoka while screens move over; removed at the end.
+  thin: 'Fredoka_500Medium',
+  light: 'Fredoka_500Medium',
+  bold: 'Fredoka_700Bold',
+  extra: 'Fredoka_700Bold',
+  black: 'Fredoka_700Bold',
+  mono: 'Fredoka_500Medium',
+  monoSemi: 'Fredoka_600SemiBold',
 } as const;
 
 export type TypeVariant =
@@ -31,7 +36,8 @@ export type TypeVariant =
   | 'body'
   | 'bodyS'
   | 'label'
-  | 'mono';
+  | 'mono'
+  | 'button';
 
 export type TypeScale = Record<TypeVariant, TextStyle>;
 
@@ -43,9 +49,9 @@ export function fluid(width: number, min: number, max: number, minW = 360, maxW 
 
 const androidText: TextStyle = Platform.OS === 'android' ? { includeFontPadding: false } : {};
 
-/** Ascent + descent in ems (hhea): Big Shoulders 0.986 + 0.214, Atkinson 0.984 + 0.316. */
+/** Ascent + descent in ems (hhea): Fredoka 0.974 + 0.236, Atkinson 0.984 + 0.316. */
 function naturalLeading(fontFamily: string | undefined): number {
-  return fontFamily?.startsWith('Atkinson') ? 1.3 : 1.2;
+  return fontFamily?.startsWith('Atkinson') ? 1.3 : 1.21;
 }
 
 const num = (...values: unknown[]): number => {
@@ -55,9 +61,9 @@ const num = (...values: unknown[]): number => {
 
 /**
  * How far a line's glyphs reach past a line box tighter than the font
- * (Big Shoulders numerals are set at 0.86–1.0). The web centres them in the
- * box and lets them spill; native text views clip whatever spills, and iOS
- * also sits the line on its descent, so the tops of the numbers get cut off.
+ * (Fredoka headings are set at 1.04–1.2). The web centres them in the box and
+ * lets them spill; native text views clip whatever spills, and iOS also sits
+ * the line on its descent, so the tops of the letters get cut off.
  */
 export function glyphOverhang(style: TextStyle | null | undefined): number {
   if (Platform.OS === 'web' || !style) return 0;
@@ -67,14 +73,17 @@ export function glyphOverhang(style: TextStyle | null | undefined): number {
   return half > 0.5 ? half : 0;
 }
 
+/** Fredoka's widest advance per character, in ems, across the weights we use (hmtx). */
+const ADVANCE: Record<string, number> = { ',': 0.23, '.': 0.23, ':': 0.24, '+': 0.53, '−': 0.56, '-': 0.42, '#': 0.77, ' ': 0.25 };
+
 /**
- * Upper bound on the width of a number set in Big Shoulders ExtraBold. Its
- * figures are proportional (0.28–0.52 em), so tabular-nums can't line up a
- * column; size the column to its longest number instead.
+ * Upper bound on the width of a number set in Fredoka. Its figures are
+ * proportional (0.38–0.59 em), so tabular-nums can't line up a column; size
+ * the column to its longest number instead.
  */
 export function numeralWidth(label: string, fontSize: number): number {
   let em = 0;
-  for (const ch of label) em += ch === ',' || ch === '.' ? 0.27 : ch === '+' || ch === '−' ? 0.55 : 0.52;
+  for (const ch of label) em += ADVANCE[ch] ?? 0.59;
   return Math.ceil(em * fontSize * PixelRatio.getFontScale());
 }
 
@@ -108,27 +117,25 @@ function display(fontFamily: string, size: number, leading: number, tracking = 0
   };
 }
 
+function text(fontFamily: string, size: number, leading: number): TextStyle {
+  return { fontFamily, fontSize: size, lineHeight: Math.round(size * leading), ...androidText };
+}
+
 export function typeScale(width: number): TypeScale {
   return {
-    hero: display(FONTS.black, fluid(width, 116, 300), 0.86, -0.012),
-    xl: display(FONTS.extra, fluid(width, 58, 136), 0.9, -0.006),
-    l: display(FONTS.bold, fluid(width, 40, 76), 0.94),
-    m: display(FONTS.bold, fluid(width, 28, 44), 1.0),
-    s: display(FONTS.bold, fluid(width, 21, 28), 1.06),
-    numeral: { ...display(FONTS.extra, fluid(width, 30, 44), 1.0), fontVariant: ['tabular-nums'] },
-    question: { fontFamily: FONTS.textBold, fontSize: fluid(width, 25, 40), lineHeight: Math.round(fluid(width, 25, 40) * 1.18), ...androidText },
-    title: { fontFamily: FONTS.textSemi, fontSize: fluid(width, 18, 22), lineHeight: Math.round(fluid(width, 18, 22) * 1.3), ...androidText },
-    bodyL: { fontFamily: FONTS.text, fontSize: fluid(width, 17, 20), lineHeight: Math.round(fluid(width, 17, 20) * 1.5), ...androidText },
+    hero: display(FONTS.display, fluid(width, 52, 104), 1.04, -0.01),
+    xl: display(FONTS.display, fluid(width, 38, 68), 1.08, -0.005),
+    l: display(FONTS.display, fluid(width, 28, 44), 1.12),
+    m: display(FONTS.display, fluid(width, 22, 30), 1.16),
+    s: display(FONTS.displaySemi, fluid(width, 18, 22), 1.2),
+    numeral: { ...display(FONTS.num, fluid(width, 28, 40), 1.1), fontVariant: ['tabular-nums'] },
+    question: text(FONTS.textBold, fluid(width, 23, 36), 1.22),
+    title: text(FONTS.displaySemi, fluid(width, 17, 20), 1.25),
+    bodyL: text(FONTS.text, fluid(width, 17, 19), 1.45),
     body: { fontFamily: FONTS.text, fontSize: 16, lineHeight: 24, ...androidText },
     bodyS: { fontFamily: FONTS.text, fontSize: 14, lineHeight: 20, ...androidText },
-    label: {
-      fontFamily: FONTS.monoSemi,
-      fontSize: fluid(width, 11, 12),
-      lineHeight: 16,
-      letterSpacing: 1.4,
-      textTransform: 'uppercase',
-      ...androidText,
-    },
-    mono: { fontFamily: FONTS.mono, fontSize: 13, lineHeight: 18, fontVariant: ['tabular-nums'], ...androidText },
+    label: { fontFamily: FONTS.displaySemi, fontSize: fluid(width, 13, 14), lineHeight: 18, letterSpacing: 0.2, ...androidText },
+    mono: { fontFamily: FONTS.displayMedium, fontSize: 13, lineHeight: 18, fontVariant: ['tabular-nums'], ...androidText },
+    button: text(FONTS.display, 17, 1.25),
   };
 }

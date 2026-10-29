@@ -8,7 +8,7 @@ import { useLayout } from '@/theme/layout';
 import { useLight } from '@/theme/LightProvider';
 import { ScrollScene } from '../motion/ScrollScene';
 import { TOP_NAV_HEIGHT, TopNav } from '../nav/TopNav';
-import { Grain } from './bits';
+import { WorldBackdrop } from '../sky/World';
 import { Button } from './Button';
 
 /** A scrolling page painted in the current light, clear of the navigation. */
@@ -34,7 +34,7 @@ export function Page({
   return (
     <View style={{ flex: 1, backgroundColor: light.field, overflow: 'hidden' }} role="main">
       {focused ? <StatusBar style={light.statusBar} /> : null}
-      <Grain />
+      <WorldBackdrop />
       <ScrollScene
         scrollY={scrollY}
         style={{ flex: 1 }}
@@ -61,10 +61,8 @@ export function Page({
       {!topNav && insets.top > 0 ? (
         <Animated.View
           pointerEvents="none"
-          style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, backgroundColor: light.field }, backdrop]}
-        >
-          <Grain />
-        </Animated.View>
+          style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, backgroundColor: light.sky[0] }, backdrop]}
+        />
       ) : null}
       {nav && topNav ? <TopNav /> : null}
     </View>

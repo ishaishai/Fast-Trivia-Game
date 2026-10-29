@@ -8,16 +8,12 @@ import Animated, {
   useSharedValue,
   withDelay,
   withRepeat,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { useMotionOK } from '@/theme/motion';
-import { glyphOverhang, glyphRoom } from '@/theme/typography';
+import { springs, useMotionOK } from '@/theme/motion';
+import { glyphRoom } from '@/theme/typography';
 import { useSection } from './ScrollScene';
-
-function easeOut(t: number): number {
-  'worklet';
-  return 1 - Math.pow(1 - t, 4);
-}
 
 /** A text style at `s` of its size. */
 function scaled(style: TextStyle, s: number): TextStyle {
@@ -30,8 +26,9 @@ function scaled(style: TextStyle, s: number): TextStyle {
 }
 
 /**
- * A heading that rises word by word out of its own baseline once its
- * section scrolls into view. Screen readers get the whole sentence.
+ * A heading whose words pop in one after another, springing past their size
+ * and settling, once its section scrolls into view. Screen readers get the
+ * whole sentence.
  * Words never break, so when the longest one is wider than the line (a long
  * handle, a narrow phone) the whole heading scales down until it fits.
  */
@@ -127,18 +124,15 @@ function Word({
   useAnimatedReaction(
     () => trigger.value,
     (v) => {
-      if (v === 1 && p.value === 0) p.value = withDelay(index * stagger, withTiming(1, { duration: 900, easing: easeOut }));
+      if (v === 1 && p.value === 0) p.value = withDelay(index * stagger, withSpring(1, springs.pop));
     },
   );
-  const animated = useAnimatedStyle(() => ({ transform: [{ translateY: (1 - p.value) * lineHeight * 1.3 }], opacity: 0.2 + p.value * 0.8 }));
-  // The mask clips the rise; it must not clip the glyphs that reach above a tight line box.
-  const reach = glyphOverhang(style);
-  const below = Math.max(reach, lineHeight * 0.24);
+  const animated = useAnimatedStyle(() => ({
+    opacity: Math.min(1, p.value * 2),
+    transform: [{ translateY: (1 - p.value) * lineHeight * 0.45 }, { scale: 0.4 + 0.6 * p.value }],
+  }));
   return (
-    <View
-      onLayout={(e) => onWidth(index, e.nativeEvent.layout.width)}
-      style={{ overflow: 'hidden', paddingTop: reach, marginTop: -reach, paddingBottom: below, marginBottom: -below }}
-    >
+    <View onLayout={(e) => onWidth(index, e.nativeEvent.layout.width)}>
       <Animated.Text style={[style, glyphRoom(style), { color }, animated]} importantForAccessibility="no" accessibilityElementsHidden>
         {word}
       </Animated.Text>
@@ -151,7 +145,7 @@ function Digit({ digit, style, lineHeight }: { digit: number; style: StyleProp<T
   const motion = useMotionOK();
   const y = useSharedValue(-digit * lineHeight);
   useEffect(() => {
-    y.value = motion ? withTiming(-digit * lineHeight, { duration: 420, easing: Easing.out(Easing.cubic) }) : -digit * lineHeight;
+    y.value = motion ? withSpring(-digit * lineHeight, springs.pop) : -digit * lineHeight;
   }, [digit, lineHeight, motion, y]);
   const animated = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
   return (

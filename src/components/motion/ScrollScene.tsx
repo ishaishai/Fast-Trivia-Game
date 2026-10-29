@@ -7,12 +7,12 @@ import Animated, {
   useDerivedValue,
   useSharedValue,
   withDelay,
-  withTiming,
+  withSpring,
   type SharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useScrollFlag } from '@/stores/ui';
-import { useMotionOK } from '@/theme/motion';
+import { springs, useMotionOK } from '@/theme/motion';
 
 interface SceneValue {
   scrollY: SharedValue<number>;
@@ -120,11 +120,11 @@ export function Section({
   );
 }
 
-/** Fades and lifts its children in once their section scrolls into view. */
+/** Pops its children in, springing slightly past their place, once their section scrolls into view. */
 export function Reveal({
   children,
   delay = 0,
-  from = 28,
+  from = 18,
   style,
 }: {
   children: ReactNode;
@@ -140,21 +140,14 @@ export function Reveal({
   useAnimatedReaction(
     () => source.value,
     (v) => {
-      if (v === 1 && shown.value === 0) {
-        shown.value = withDelay(delay, withTiming(1, { duration: 900, easing: easeOutWorklet }));
-      }
+      if (v === 1 && shown.value === 0) shown.value = withDelay(delay, withSpring(1, springs.pop));
     },
   );
   const animated = useAnimatedStyle(() => ({
-    opacity: shown.value,
-    transform: [{ translateY: (1 - shown.value) * from }],
+    opacity: Math.min(1, shown.value * 1.8),
+    transform: [{ translateY: (1 - shown.value) * from }, { scale: 0.94 + 0.06 * shown.value }],
   }));
   return <Animated.View style={[style, animated]}>{children}</Animated.View>;
-}
-
-function easeOutWorklet(t: number): number {
-  'worklet';
-  return 1 - Math.pow(1 - t, 4);
 }
 
 /** Drifts at a different speed from the page — subtle depth. */

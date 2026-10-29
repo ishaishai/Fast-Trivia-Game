@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { localZone, lightForMinutes } from '@shared/schedule';
 import type { LightState } from '@shared/types';
 import { BACKEND_KIND } from '@/backend';
 import { useNow } from '@/hooks/useNow';
 import { useSettings } from '@/stores/settings';
-import { LIGHTS, type Light } from './palette';
+import { LIGHTS, surfaceOf, type Light } from './palette';
 import { applyWebStyles } from './webStyles';
 
 const LightContext = createContext<Light>(LIGHTS.bluehour);
@@ -29,8 +29,23 @@ export function LightScope({ name, children }: { name: LightState; children: Rea
   return <LightContext.Provider value={LIGHTS[name]}>{children}</LightContext.Provider>;
 }
 
+/**
+ * Everything inside a card reads the card's colours (white, dark ink) while
+ * keeping the world's sun and shadow. Put LightScope outside, CardScope inside.
+ */
+export function CardScope({ children }: { children: ReactNode }) {
+  const light = useLight();
+  const value = useMemo(() => surfaceOf(light), [light]);
+  return <LightContext.Provider value={value}>{children}</LightContext.Provider>;
+}
+
 export function useLight(): Light {
   return useContext(LightContext);
+}
+
+/** True inside a card. */
+export function onCard(light: Light): boolean {
+  return light.field === light.card.field;
 }
 
 export function useAmbientLight(): LightState {

@@ -23,18 +23,32 @@ export type IconName =
   | 'lock'
   | 'warp'
   | 'reset'
-  | 'play';
+  | 'play'
+  | 'star'
+  | 'trophy'
+  | 'podium'
+  | 'fire'
+  | 'dice'
+  | 'chevron-down'
+  | 'chevron-right'
+  | 'sparkle'
+  | 'help'
+  | 'gear'
+  | 'bolt';
 
 interface IconProps {
   name: IconName;
   size?: number;
   color: string;
   strokeWidth?: number;
+  /** fill the shape as well as stroking it (star, play, trophy…) */
+  filled?: boolean;
 }
 
-/** A 24-unit, round-capped icon set drawn for Meridian. */
-export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: IconProps) {
+/** A 24-unit, round-capped, chunky icon set drawn for Meridian. */
+export function Icon({ name, size = 22, color, strokeWidth = 2.2, filled }: IconProps) {
   const p = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
+  const f = filled ? { ...p, fill: color } : p;
   return (
     <View pointerEvents="none" aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
     <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -157,7 +171,50 @@ export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: IconProps) {
           <Polyline points="4,4 4.5,8 8.5,7.5" {...p} />
         </>
       )}
-      {name === 'play' && <Path d="M8 5.5v13l10.5-6.5z" {...p} />}
+      {name === 'play' && <Path d="M8 5.5v13l10.5-6.5z" {...f} />}
+      {name === 'star' && <Path d="M12 3.2l2.6 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.5l-5.4 2.9 1.2-5.9-4.4-4.1 6-.7z" {...f} />}
+      {name === 'trophy' && (
+        <>
+          <Path d="M7 4h10v5a5 5 0 0 1-10 0z" {...f} />
+          <Path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3.6M17 6h2.5a2.5 2.5 0 0 1-2.6 3.6" {...p} />
+          <Line x1="12" y1="14" x2="12" y2="17.5" {...p} />
+          <Path d="M8.5 20.5h7l-.8-3h-5.4z" {...f} />
+        </>
+      )}
+      {name === 'podium' && (
+        <>
+          <Rect x="9" y="5" width="6" height="15" rx="1.5" {...f} />
+          <Rect x="3" y="10" width="6" height="10" rx="1.5" {...p} />
+          <Rect x="15" y="13" width="6" height="7" rx="1.5" {...p} />
+        </>
+      )}
+      {name === 'fire' && <Path d="M12 21c-4 0-6.5-2.8-6.5-6.3 0-3.7 3-5.6 3.6-9.2 2.3 1.4 3.4 3.6 3.4 5.6 1-.7 1.6-1.9 1.7-3.2 2.5 2 4.3 4.5 4.3 7 0 3.4-2.5 6.1-6.5 6.1z" {...f} />}
+      {name === 'dice' && (
+        <>
+          <Rect x="4" y="4" width="16" height="16" rx="4" {...p} />
+          <Circle cx="9" cy="9" r="1.3" fill={color} />
+          <Circle cx="15" cy="15" r="1.3" fill={color} />
+          <Circle cx="15" cy="9" r="1.3" fill={color} />
+          <Circle cx="9" cy="15" r="1.3" fill={color} />
+        </>
+      )}
+      {name === 'chevron-down' && <Polyline points="6,9.5 12,15.5 18,9.5" {...p} />}
+      {name === 'chevron-right' && <Polyline points="9.5,6 15.5,12 9.5,18" {...p} />}
+      {name === 'sparkle' && <Path d="M12 3c.8 5 2.2 7 7 8-4.8 1-6.2 3-7 8-.8-5-2.2-7-7-8 4.8-1 6.2-3 7-8z" {...f} />}
+      {name === 'help' && (
+        <>
+          <Circle cx="12" cy="12" r="9" {...p} />
+          <Path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.6" {...p} />
+          <Circle cx="12" cy="16.8" r="1.1" fill={color} />
+        </>
+      )}
+      {name === 'gear' && (
+        <>
+          <Circle cx="12" cy="12" r="3" {...p} />
+          <Path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8" {...p} />
+        </>
+      )}
+      {name === 'bolt' && <Path d="M13 3 5.5 13.5H11L10 21l7.5-10.5H12z" {...f} />}
     </Svg>
     </View>
   );

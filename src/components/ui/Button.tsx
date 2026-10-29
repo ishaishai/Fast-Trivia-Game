@@ -1,72 +1,79 @@
 import type { Href } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useLight } from '@/theme/LightProvider';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { onCard, useLight } from '@/theme/LightProvider';
 import { useLayout } from '@/theme/layout';
-import { dur, ease } from '@/theme/motion';
+import { springs, useMotionOK } from '@/theme/motion';
+import { lip as LIP } from '@/theme/shape';
 import { Icon, type IconName } from '../icons';
+import { Float, Pulse } from '../motion/Playful';
 import { Tap, type TapState } from './Tap';
 
 type Variant = 'sun' | 'ink' | 'ghost';
-type Size = 'l' | 'm' | 's';
+type Size = 'xl' | 'l' | 'm' | 's';
 
 export interface ButtonProps {
   label: string;
   onPress?: (event: GestureResponderEvent) => void;
   href?: Href;
+  /** sun: the main thing to do. ink: a white (or, on a card, lavender) secondary. ghost: a text link. */
   variant?: Variant;
   size?: Size;
   icon?: IconName | null;
   iconLeft?: IconName;
   disabled?: boolean;
   loading?: boolean;
-  /** Override colours when a button sits outside the page light (the run ground). */
-  colors?: { bg: string; fg: string; hoverBg?: string; hoverFg?: string };
+  /** Override colours when a button sits outside the page light (the run, the answer tiles). */
+  colors?: { bg: string; fg: string; lip?: string; hoverBg?: string; hoverFg?: string };
+  /** an idle loop that invites a press */
+  idle?: 'pulse' | 'bob';
   accessibilityLabel?: string;
   accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
   stretch?: boolean;
 }
 
-const HEIGHT: Record<Size, number> = { l: 60, m: 48, s: 36 };
-const PAD: Record<Size, number> = { l: 28, m: 22, s: 16 };
+const HEIGHT: Record<Size, number> = { xl: 72, l: 60, m: 50, s: 40 };
+const PAD: Record<Size, number> = { xl: 36, l: 28, m: 22, s: 16 };
+const FONT: Record<Size, number> = { xl: 26, l: 21, m: 18, s: 15 };
+const ICON: Record<Size, number> = { xl: 28, l: 22, m: 20, s: 17 };
+const RADIUS: Record<Size, number> = { xl: 26, l: 22, m: 18, s: 14 };
 
 /**
- * Pill buttons. Hover wipes a fill in from the left and nudges the arrow;
- * pressing sinks the pill slightly. Colours come from the current light.
+ * Chunky game buttons: a coloured face on a darker lip. Pressing pushes the
+ * face down onto the lip; letting go springs it back up, a little past where
+ * it started.
  */
-export function Button(props: ButtonProps) {
-  return <ButtonBody {...props} />;
-}
-
-function ButtonBody({
+export function Button({
   label,
   href,
   onPress,
   variant = 'sun',
   size = 'l',
-  icon = variant === 'sun' ? 'arrow-right' : null,
+  icon = null,
   iconLeft,
   disabled,
   loading,
   colors,
+  idle,
   accessibilityLabel,
   accessibilityHint,
   style,
   stretch,
 }: ButtonProps) {
   const light = useLight();
-  const { type } = useLayout();
-  const palette = colors ?? {
-    sun: { bg: light.sun, fg: light.onSun, hoverBg: light.ink, hoverFg: light.field },
-    ink: { bg: 'transparent', fg: light.ink, hoverBg: light.ink, hoverFg: light.field },
-    ghost: { bg: 'transparent', fg: light.ink, hoverBg: 'transparent', hoverFg: light.sun },
-  }[variant];
-  const hoverBg = palette.hoverBg ?? palette.fg;
-  const hoverFg = palette.hoverFg ?? palette.bg;
-
-  return (
+  const card = onCard(light);
+  const palette =
+    colors ??
+    {
+      sun: { bg: light.sun, fg: light.onSun, lip: light.sunLip },
+      ink: card
+        ? { bg: light.card.deep, fg: light.card.ink, lip: '#CBC1EE' }
+        : { bg: '#FFFFFF', fg: light.card.ink, lip: '#D4CCEE' },
+      ghost: { bg: 'transparent', fg: light.ink, lip: 'transparent' },
+    }[variant];
+  const tap = (
     <Tap
       href={disabled ? undefined : href}
       onPress={onPress}
@@ -75,28 +82,49 @@ function ButtonBody({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: Boolean(disabled), busy: Boolean(loading) }}
-      style={[{ alignSelf: stretch ? 'stretch' : 'flex-start', borderRadius: 999 }, style]}
+      style={[{ alignSelf: stretch ? 'stretch' : 'flex-start', borderRadius: RADIUS[size] }, idle ? null : style]}
     >
-      {(state) => (
-        <ButtonFace
-          state={state}
-          label={label}
-          icon={icon}
-          iconLeft={iconLeft}
-          size={size}
-          variant={variant}
-          disabled={disabled}
-          loading={loading}
-          bg={palette.bg}
-          fg={palette.fg}
-          hoverBg={hoverBg}
-          hoverFg={hoverFg}
-          border={variant === 'ink' ? light.line : 'transparent'}
-          labelStyle={type.title}
-          stretch={stretch}
-        />
-      )}
+      {(state) =>
+        variant === 'ghost' ? (
+          <GhostFace state={state} label={label} icon={icon} iconLeft={iconLeft} size={size} fg={palette.fg} disabled={disabled} />
+        ) : (
+          <ButtonFace
+            state={state}
+            label={label}
+            icon={icon}
+            iconLeft={iconLeft}
+            size={size}
+            disabled={disabled}
+            loading={loading}
+            bg={palette.bg}
+            fg={palette.fg}
+            lipColor={palette.lip ?? 'rgba(0, 0, 0, 0.25)'}
+            stretch={stretch}
+          />
+        )
+      }
     </Tap>
+  );
+  if (!idle || disabled) return tap;
+  const wrap: StyleProp<ViewStyle> = [{ alignSelf: stretch ? 'stretch' : 'flex-start' }, style];
+  return idle === 'pulse' ? (
+    <Pulse scale={1.045} style={wrap}>
+      {tap}
+    </Pulse>
+  ) : (
+    <Float amplitude={4} style={wrap}>
+      {tap}
+    </Float>
+  );
+}
+
+function Label({ label, size, color }: { label: string; size: Size; color: string }) {
+  const { type } = useLayout();
+  const fontSize = FONT[size];
+  return (
+    <Animated.Text numberOfLines={1} style={[type.button, { fontSize, lineHeight: Math.round(fontSize * 1.25), color, flexShrink: 1 }]}>
+      {label}
+    </Animated.Text>
   );
 }
 
@@ -106,15 +134,11 @@ function ButtonFace({
   icon,
   iconLeft,
   size,
-  variant,
   disabled,
   loading,
   bg,
   fg,
-  hoverBg,
-  hoverFg,
-  border,
-  labelStyle,
+  lipColor,
   stretch,
 }: {
   state: TapState;
@@ -122,115 +146,154 @@ function ButtonFace({
   icon: IconName | null;
   iconLeft?: IconName;
   size: Size;
-  variant: Variant;
   disabled?: boolean;
   loading?: boolean;
   bg: string;
   fg: string;
-  hoverBg: string;
-  hoverFg: string;
-  border: string;
-  labelStyle: object;
+  lipColor: string;
   stretch?: boolean;
 }) {
-  const hover = useSharedValue(0);
-  const press = useSharedValue(0);
-  const active = (state.hovered || state.focused) && !disabled;
-
-  useEffect(() => {
-    hover.value = withTiming(active ? 1 : 0, { duration: dur.base, easing: ease.out });
-  }, [active, hover]);
-  useEffect(() => {
-    press.value = withTiming(state.pressed ? 1 : 0, { duration: dur.micro });
-  }, [state.pressed, press]);
-
-  const shell = useAnimatedStyle(() => ({ transform: [{ scale: 1 - press.value * 0.03 }] }));
-  const wipe = useAnimatedStyle(() => ({ transform: [{ scaleX: hover.value }] }));
-  const text = useAnimatedStyle(() => ({ color: interpolateColor(hover.value, [0, 1], [fg, hoverFg]) }));
-  const arrow = useAnimatedStyle(() => ({ transform: [{ translateX: hover.value * 5 }] }));
-  const underline = useAnimatedStyle(() => ({ transform: [{ scaleX: hover.value }] }));
-
+  const motion = useMotionOK();
   const height = HEIGHT[size];
-  const fontSize = size === 's' ? 14 : size === 'm' ? 16 : 18;
+  const lip = LIP[size];
+  const r = RADIUS[size];
+  const down = useSharedValue(0);
+  const pressed = state.pressed && !disabled;
+  const lifted = (state.hovered || state.focused) && !disabled && !pressed;
+  useEffect(() => {
+    const to = pressed ? lip : lifted ? -1.5 : 0;
+    if (!motion) down.set(withTiming(to, { duration: 80 }));
+    else down.set(withSpring(to, pressed ? springs.press : springs.release));
+  }, [down, lifted, lip, motion, pressed]);
+  const face = useAnimatedStyle(() => ({ transform: [{ translateY: down.value }] }));
   return (
-    <Animated.View
-      style={[
-        styles.face,
-        {
-          height,
-          paddingHorizontal: variant === 'ghost' ? 0 : PAD[size],
-          backgroundColor: bg,
-          borderColor: border,
-          borderWidth: variant === 'ink' ? 1.5 : 0,
-          opacity: disabled ? 0.45 : 1,
-          justifyContent: stretch ? 'center' : 'flex-start',
-        },
-        shell,
-      ]}
-    >
-      {variant !== 'ghost' ? (
-        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: hoverBg, transformOrigin: 'left' }, wipe]} />
-      ) : (
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.underline, { backgroundColor: hoverFg, transformOrigin: 'left' }, underline]}
-        />
-      )}
-      {iconLeft ? (
-        <AnimatedIcon name={iconLeft} hover={hover} fg={fg} hoverFg={hoverFg} size={size === 's' ? 16 : 20} />
-      ) : null}
-      <Animated.Text numberOfLines={1} style={[labelStyle, { fontSize, lineHeight: fontSize * 1.2 }, text]}>
-        {label}
-      </Animated.Text>
-      {loading ? (
-        <ActivityIndicator size="small" color={fg} />
-      ) : icon ? (
-        <Animated.View style={arrow}>
-          <AnimatedIcon name={icon} hover={hover} fg={fg} hoverFg={hoverFg} size={size === 's' ? 16 : 20} />
-        </Animated.View>
-      ) : null}
+    <View style={{ height: height + lip, opacity: disabled ? 0.5 : 1, alignSelf: stretch ? 'stretch' : 'flex-start' }}>
+      <View style={[styles.lip, { top: lip, height, borderRadius: r, backgroundColor: lipColor }]} />
+      <Animated.View
+        style={[
+          styles.face,
+          {
+            height,
+            borderRadius: r,
+            paddingHorizontal: PAD[size],
+            backgroundColor: bg,
+            gap: size === 's' ? 8 : 10,
+            justifyContent: 'center',
+          },
+          face,
+        ]}
+      >
+        {/* A soft highlight across the top half — the face looks rounded, like a sweet. */}
+        <View pointerEvents="none" style={[styles.shine, { borderTopLeftRadius: r - 3, borderTopRightRadius: r - 3, height: height * 0.42 }]} />
+        {iconLeft ? <Icon name={iconLeft} color={fg} size={ICON[size]} strokeWidth={2.6} /> : null}
+        <Label label={label} size={size} color={fg} />
+        {loading ? <ActivityIndicator size="small" color={fg} /> : icon ? <Icon name={icon} color={fg} size={ICON[size]} strokeWidth={2.6} /> : null}
+      </Animated.View>
+    </View>
+  );
+}
+
+function GhostFace({
+  state,
+  label,
+  icon,
+  iconLeft,
+  size,
+  fg,
+  disabled,
+}: {
+  state: TapState;
+  label: string;
+  icon: IconName | null;
+  iconLeft?: IconName;
+  size: Size;
+  fg: string;
+  disabled?: boolean;
+}) {
+  const motion = useMotionOK();
+  const s = useSharedValue(1);
+  const pressed = state.pressed && !disabled;
+  useEffect(() => {
+    const to = pressed ? 0.94 : 1;
+    s.set(motion ? withSpring(to, pressed ? springs.press : springs.release) : withTiming(to, { duration: 80 }));
+  }, [motion, pressed, s]);
+  const animated = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
+  const hover = (state.hovered || state.focused) && !disabled;
+  return (
+    <Animated.View style={[{ height: HEIGHT[size], flexDirection: 'row', alignItems: 'center', gap: 8, opacity: disabled ? 0.5 : 1 }, animated]}>
+      {iconLeft ? <Icon name={iconLeft} color={fg} size={ICON[size] - 2} strokeWidth={2.6} /> : null}
+      <View>
+        <Label label={label} size={size === 'xl' ? 'l' : size === 'l' ? 'm' : size} color={fg} />
+        <View style={[styles.underline, { backgroundColor: fg, opacity: hover ? 1 : 0 }]} />
+      </View>
+      {icon ? <Icon name={icon} color={fg} size={ICON[size] - 2} strokeWidth={2.6} /> : null}
     </Animated.View>
   );
 }
 
-/** Icons can't animate their stroke colour cheaply, so cross-fade two copies. */
-function AnimatedIcon({
-  name,
-  hover,
-  fg,
-  hoverFg,
-  size,
+/** Round icon-only button with the same lip, for toolbars (sound, close). */
+export function IconButton({
+  icon,
+  onPress,
+  accessibilityLabel,
+  size = 44,
+  colors,
 }: {
-  name: IconName;
-  hover: { value: number };
-  fg: string;
-  hoverFg: string;
-  size: number;
+  icon: IconName;
+  onPress: () => void;
+  accessibilityLabel: string;
+  size?: number;
+  colors?: { bg: string; fg: string; lip: string };
 }) {
-  const top = useAnimatedStyle(() => ({ opacity: hover.value }));
+  const light = useLight();
+  const c = colors ?? { bg: '#FFFFFF', fg: light.card.ink, lip: '#D4CCEE' };
   return (
-    <View style={{ width: size, height: size }}>
-      <Icon name={name} color={fg} size={size} strokeWidth={2} />
-      <Animated.View style={[StyleSheet.absoluteFill, top]}>
-        <Icon name={name} color={hoverFg} size={size} strokeWidth={2} />
+    <Tap onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={{ borderRadius: size }}>
+      {(state) => <RoundFace state={state} icon={icon} size={size} {...c} />}
+    </Tap>
+  );
+}
+
+function RoundFace({ state, icon, size, bg, fg, lip: lipColor }: { state: TapState; icon: IconName; size: number; bg: string; fg: string; lip: string }) {
+  const motion = useMotionOK();
+  const down = useSharedValue(0);
+  const lip = 4;
+  useEffect(() => {
+    const to = state.pressed ? lip : 0;
+    down.set(motion ? withSpring(to, state.pressed ? springs.press : springs.release) : withTiming(to, { duration: 80 }));
+  }, [down, motion, state.pressed]);
+  const face = useAnimatedStyle(() => ({ transform: [{ translateY: down.value }] }));
+  return (
+    <View style={{ width: size, height: size + lip }}>
+      <View style={[styles.lip, { top: lip, height: size, borderRadius: size, backgroundColor: lipColor }]} />
+      <Animated.View style={[{ width: size, height: size, borderRadius: size, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }, face]}>
+        <Icon name={icon} color={fg} size={size * 0.5} strokeWidth={2.6} />
       </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  face: {
-    borderRadius: 999,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  underline: {
+  lip: {
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 8,
-    height: 1.5,
+  },
+  face: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  shine: {
+    position: 'absolute',
+    top: 3,
+    left: 3,
+    right: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  underline: {
+    height: 2.5,
+    borderRadius: 2,
+    marginTop: -2,
   },
 });

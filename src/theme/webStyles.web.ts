@@ -3,7 +3,7 @@ import type { Light } from './palette';
 const STYLE_ID = 'meridian-global';
 
 const CSS = `
-html, body, #root { height: 100%; background: var(--m-field); }
+html, body, #root { height: 100%; background-color: var(--m-field); background-image: var(--m-sky); }
 body {
   margin: 0;
   overscroll-behavior: none;
@@ -11,11 +11,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 900ms cubic-bezier(.65,0,.35,1);
 }
 *:focus { outline: none; }
-*:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 3px; }
-input:focus-visible, textarea:focus-visible { outline-offset: 0; }
+/* A dark ring inside a white halo reads on any sky and on white cards. */
+*:focus-visible { outline: 3px solid var(--m-focus); outline-offset: 2px; box-shadow: 0 0 0 8px #FFFFFF !important; }
+input:focus-visible, textarea:focus-visible { outline-offset: 0; box-shadow: none !important; }
 ::selection { background: var(--m-sun); color: var(--m-on-sun); }
 * { scrollbar-width: thin; scrollbar-color: var(--m-line) transparent; }
 *::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -39,9 +39,10 @@ export function applyWebStyles(light: Light): void {
   }
   const root = document.documentElement.style;
   root.setProperty('--m-field', light.field);
+  root.setProperty('--m-sky', `linear-gradient(180deg, ${light.sky[0]}, ${light.sky[1]})`);
   root.setProperty('--m-sun', light.sun);
   root.setProperty('--m-on-sun', light.onSun);
-  root.setProperty('--m-focus', light.sun);
+  root.setProperty('--m-focus', light.focus);
   root.setProperty('--m-line', light.line);
   root.setProperty('color-scheme', light.statusBar === 'dark' ? 'light' : 'dark');
   const meta = document.querySelector('meta[name="theme-color"]');
