@@ -20,10 +20,10 @@ import { useLight } from '@/theme/LightProvider';
 
 const LIGHT_OPTIONS: { value: LightState | 'auto'; label: string }[] = [
   { value: 'auto', label: 'Auto' },
-  { value: 'firstlight', label: 'First Light' },
-  { value: 'zenith', label: 'Zenith' },
-  { value: 'bluehour', label: 'Blue Hour' },
-  { value: 'midnight', label: 'Midnight' },
+  { value: 'firstlight', label: 'Morning' },
+  { value: 'zenith', label: 'Day' },
+  { value: 'bluehour', label: 'Evening' },
+  { value: 'midnight', label: 'Night' },
 ];
 
 /**
@@ -37,7 +37,7 @@ export function PreviewSheet() {
   const preview = backend.preview;
   if (!preview) return null;
   return (
-    <Sheet visible={open} onClose={() => setOpen(false)} title="Preview controls">
+    <Sheet visible={open} onClose={() => setOpen(false)} title="Time machine">
       {open ? <Controls close={() => setOpen(false)} /> : null}
     </Sheet>
   );
@@ -79,8 +79,8 @@ function Controls({ close }: { close: () => void }) {
       </View>
 
       {locked ? (
-        <T v="bodyS" color={light.sun}>
-          Finish your run before moving the clock.
+        <T v="bodyS" color={light.sunText}>
+          Finish your game before moving the clock.
         </T>
       ) : null}
 
@@ -114,6 +114,7 @@ function Controls({ close }: { close: () => void }) {
         </T>
         <Segmented
           label="Light"
+          scroll
           options={LIGHT_OPTIONS}
           value={lightOverride ?? 'auto'}
           onChange={(v) => setLightOverride(v === 'auto' ? null : v)}

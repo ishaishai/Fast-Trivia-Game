@@ -1,6 +1,7 @@
 import { forwardRef, useState, type ReactNode } from 'react';
 import { TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native';
-import { useLight } from '@/theme/LightProvider';
+import { onCard, useLight } from '@/theme/LightProvider';
+import { SIGNAL } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
 import { T } from './Text';
 
@@ -19,7 +20,7 @@ export const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
 ) {
   const light = useLight();
   const [focused, setFocused] = useState(false);
-  const border = error ? '#FF4D4D' : focused ? light.sun : light.line;
+  const border = error ? SIGNAL.wrong : focused ? light.card.sunText : 'transparent';
   return (
     <View style={{ gap: 8 }}>
       <T v="label" muted nativeID={`${label}-label`}>
@@ -30,16 +31,16 @@ export const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
           flexDirection: 'row',
           alignItems: 'center',
           height: 60,
-          paddingHorizontal: 20,
+          paddingHorizontal: 18,
           borderRadius: 18,
-          backgroundColor: light.raised,
-          borderWidth: 1.5,
+          backgroundColor: onCard(light) ? light.deep : '#FFFFFF',
+          borderWidth: 3,
           borderColor: border,
           gap: 4,
         }}
       >
         {prefix ? (
-          <T v="title" muted style={{ fontFamily: FONTS.monoSemi }}>
+          <T v="title" muted style={{ fontFamily: FONTS.display, fontSize: 20 }}>
             {prefix}
           </T>
         ) : null}
@@ -48,8 +49,8 @@ export const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
           {...rest}
           accessibilityLabel={label}
           aria-labelledby={`${label}-label`}
-          placeholderTextColor={light.muted}
-          selectionColor={light.sun}
+          placeholderTextColor={light.card.muted}
+          selectionColor={light.card.sunText}
           onFocus={(e) => {
             setFocused(true);
             onFocus?.(e);
@@ -62,8 +63,8 @@ export const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
             {
               flex: 1,
               height: '100%',
-              color: light.ink,
-              fontFamily: FONTS.textSemi,
+              color: light.card.ink,
+              fontFamily: FONTS.displaySemi,
               fontSize: 20,
               outlineStyle: 'none',
             } as object,
@@ -73,7 +74,7 @@ export const Field = forwardRef<TextInputInstance, FieldProps>(function Field(
         {trailing}
       </View>
       {error ? (
-        <T v="bodyS" color={light.ink} accessibilityLiveRegion="polite">
+        <T v="bodyS" color={SIGNAL.wrongLip} accessibilityLiveRegion="polite">
           ✕ {error}
         </T>
       ) : hint ? (

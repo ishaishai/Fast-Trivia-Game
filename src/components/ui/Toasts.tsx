@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { AccessibilityInfo, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 import { useLight } from '@/theme/LightProvider';
-import { dur, ease } from '@/theme/motion';
+import { dur, ease, springs, useMotionOK } from '@/theme/motion';
+import { CARD, SIGNAL } from '@/theme/palette';
+import { FONTS } from '@/theme/typography';
+import { Icon } from '../icons';
 import { T } from './Text';
 
 interface Toast {
@@ -53,11 +56,12 @@ export function Toasts() {
 
 function ToastPill({ toast: t }: { toast: Toast }) {
   const light = useLight();
+  const motion = useMotionOK();
   const p = useSharedValue(0);
   useEffect(() => {
-    p.value = withTiming(1, { duration: dur.base, easing: ease.out });
-  }, [p]);
-  const style = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ translateY: (1 - p.value) * -14 }] }));
+    p.set(motion ? withSpring(1, springs.pop) : withTiming(1, { duration: dur.short, easing: ease.out }));
+  }, [motion, p]);
+  const style = useAnimatedStyle(() => ({ opacity: Math.min(1, p.value * 1.5), transform: [{ translateY: (1 - p.value) * -24 }, { scale: 0.8 + 0.2 * p.value }] }));
   const error = t.tone === 'error';
   return (
     <Animated.View
@@ -65,15 +69,20 @@ function ToastPill({ toast: t }: { toast: Toast }) {
         {
           maxWidth: 520,
           marginHorizontal: 16,
-          paddingHorizontal: 18,
+          paddingHorizontal: 16,
           paddingVertical: 12,
-          borderRadius: 999,
-          backgroundColor: error ? '#FF4D4D' : light.ink,
+          borderRadius: 22,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 10,
+          backgroundColor: error ? SIGNAL.wrong : '#FFFFFF',
+          boxShadow: `0px 4px 0px 0px ${error ? SIGNAL.wrongLip : light.shadow}`,
         },
         style,
       ]}
     >
-      <T v="bodyS" color={error ? '#2A0606' : light.field} style={{ fontFamily: 'AtkinsonHyperlegibleNext_600SemiBold' }}>
+      <Icon name={error ? 'cross' : 'check'} color={error ? SIGNAL.onWrong : SIGNAL.correctLip} size={18} strokeWidth={3} />
+      <T v="bodyS" color={error ? SIGNAL.onWrong : CARD.ink} style={{ fontFamily: FONTS.displaySemi, fontSize: 15, flexShrink: 1 }}>
         {t.text}
       </T>
     </Animated.View>

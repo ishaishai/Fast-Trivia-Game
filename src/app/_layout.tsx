@@ -3,13 +3,14 @@ import { Stack, router, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BackendProvider } from '@/backend/BackendProvider';
 import { Mark } from '@/components/brand/Mark';
 import { CursorHalo } from '@/components/nav/CursorHalo';
 import { PreviewSheet } from '@/components/nav/PreviewSheet';
 import { TransitionOverlay } from '@/components/nav/TransitionOverlay';
+import { Gradient } from '@/components/ui/Gradient';
 import { T } from '@/components/ui/Text';
 import { Toasts } from '@/components/ui/Toasts';
 import { useGame } from '@/stores/game';
@@ -53,23 +54,23 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
 
   if (!booted) {
     return (
-      <View style={{ flex: 1, backgroundColor: light.field, alignItems: 'center', justifyContent: 'center' }}>
-        <Mark size={72} sun={light.sun} line={light.ink} />
-      </View>
+      <Gradient colors={light.sky} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Mark size={96} sun={light.sun} line="#3A2200" />
+      </Gradient>
     );
   }
 
   if (error) {
     return (
-      <View style={{ flex: 1, backgroundColor: light.field, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
-        <Mark size={64} sun={light.sun} line={light.ink} />
+      <Gradient colors={light.sky} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
+        <Mark size={80} sun={light.sun} line="#3A2200" />
         <T v="m" align="center">
           Meridian couldn’t start.
         </T>
         <T v="body" muted align="center" style={{ maxWidth: 460 }}>
           {error}
         </T>
-      </View>
+      </Gradient>
     );
   }
 
