@@ -31,7 +31,8 @@ export const copy = {
     you: (handle: string) => `@${handle}`,
     topScore: (n: string) => `Top score today: ${n}`,
     beFirst: 'Be the first to play today!',
-    youScored: (n: string) => `You scored ${n} points!`,
+    youScored: (score: number, n: string) =>
+      score > 0 ? `You scored ${n} points!` : score === 0 ? 'You scored 0. A practice game helps!' : `You scored ${n}. Practice, then beat it tomorrow!`,
     youLead: 'You have the top score!',
     stillGoing: 'Your game is still going!',
     sessionOpen: (title: string) => `${title} is open!`,

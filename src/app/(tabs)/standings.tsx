@@ -2,41 +2,48 @@ import { router, useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { KINDS, SESSIONS, addDays, competitionId, parseCompetitionId, phaseOf } from '@shared/schedule';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KINDS, SESSIONS, competitionId, parseCompetitionId, phaseOf } from '@shared/schedule';
 import type { Competition, CompetitionKind } from '@shared/types';
 import { useBackend } from '@/backend/BackendProvider';
-import { WordsReveal } from '@/components/motion/Kinetic';
-import { Reveal, Section } from '@/components/motion/ScrollScene';
+import { PopIn } from '@/components/motion/Playful';
+import { useTabBarSpace } from '@/components/nav/TabBar';
+import { Avatar } from '@/components/profile/Avatar';
+import { SessionTile } from '@/components/sky/SessionTile';
+import { Podium } from '@/components/standings/Podium';
 import { TimingTower } from '@/components/standings/TimingTower';
+import { Winners } from '@/components/standings/Winners';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { Container, Page } from '@/components/ui/Page';
-import { Eyebrow, LiveDot } from '@/components/ui/bits';
+import { Chip } from '@/components/ui/bits';
 import { T } from '@/components/ui/Text';
 import { Segmented } from '@/components/ui/Toggle';
-import { copy } from '@/copy/en';
+import type { LeaderboardView } from '@/backend/types';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useNow } from '@/hooks/useNow';
-import { clockTime, countdown, dayLabel, num, ordinal, signed } from '@/lib/format';
-import { featured, lightOf } from '@/lib/status';
+import { clockTime, dayLabel, humanDuration, num, signed } from '@/lib/format';
+import { actionOf, lightOf, primaryCompetition } from '@/lib/status';
 import { useGame } from '@/stores/game';
-import { useLayout } from '@/theme/layout';
 import { LightScope, useLight } from '@/theme/LightProvider';
-import { FONTS } from '@/theme/typography';
+import { springs, useMotionOK } from '@/theme/motion';
 
-export default function StandingsRoute() {
-  const params = useLocalSearchParams<{ c?: string }>();
+type RankView = 'live' | 'winners';
+
+export default function RanksRoute() {
+  const params = useLocalSearchParams<{ c?: string; view?: string }>();
   const day = useGame((s) => s.day);
   const now = useNow(1000);
+  const view: RankView = params.view === 'winners' ? 'winners' : 'live';
   if (!day) return <Page>{null}</Page>;
-  const parsed = params.c ? parseCompetitionId(params.c) : null;
-  const id = parsed ? params.c! : featured(day, now).id;
-  return <Standings id={id} todayKey={day.dayKey} />;
+  const id = params.c && parseCompetitionId(params.c) ? params.c : primaryCompetition(day, now).id;
+  return <Ranks id={id} view={view} todayKey={day.dayKey} />;
 }
 
-function Standings({ id, todayKey }: { id: string; todayKey: string }) {
+function Ranks({ id, view, todayKey }: { id: string; view: RankView; todayKey: string }) {
   const backend = useBackend();
   const now = useNow(1000);
-  const parsed = parseCompetitionId(id)!;
   const [competition, setCompetition] = useState<Competition | null>(null);
   useEffect(() => {
     let alive = true;
@@ -51,139 +58,161 @@ function Standings({ id, todayKey }: { id: string; todayKey: string }) {
   if (!competition) return <Page>{null}</Page>;
   return (
     <LightScope name={lightOf(competition, now)}>
-      <Board competition={competition} kind={parsed.kind} dayKey={parsed.dayKey} todayKey={todayKey} />
+      <Board competition={competition} view={view} todayKey={todayKey} />
     </LightScope>
   );
 }
 
-function Board({ competition: c, kind, dayKey, todayKey }: { competition: Competition; kind: CompetitionKind; dayKey: string; todayKey: string }) {
-  const layout = useLayout();
-  const light = useLight();
+function Board({ competition: c, view, todayKey }: { competition: Competition; view: RankView; todayKey: string }) {
   const now = useNow(1000);
-  const board = useLeaderboard(c.id, 50);
+  const day = useGame((s) => s.day);
+  const board = useLeaderboard(view === 'live' ? c.id : null, 50);
+  const parsed = parseCompetitionId(c.id)!;
   const phase = phaseOf(c, now);
-  const s = SESSIONS[kind];
-  const wide = layout.isDesktop;
-  const go = (k: CompetitionKind, d: string) => router.setParams({ c: competitionId(d, k) });
-  const days = Array.from({ length: 7 }, (_, i) => addDays(todayKey, -i));
-  const leader = board?.rows[0] ?? null;
-  const me = board?.me ?? null;
+  const s = SESSIONS[parsed.kind];
+  const past = parsed.dayKey !== todayKey;
+  const action = actionOf(c, now, day);
+  const pick = (k: CompetitionKind) => router.setParams({ c: competitionId(todayKey, k) });
 
   const status =
     phase === 'upcoming'
-      ? `${copy.standings.upcoming} · Doors open ${clockTime(c.opensAt)} ${dayLabel(c.opensAt)}`
+      ? `Starts at ${clockTime(c.opensAt)}`
       : phase === 'open'
-        ? `${copy.standings.live} · Closes in ${countdown(c.closesAt - now)}`
+        ? c.kind === 'daily'
+          ? `Live now · ends at midnight`
+          : `Live now · ends at ${clockTime(c.closesAt)}`
         : phase === 'closing'
-          ? `${copy.standings.closing} · ${countdown(c.crownAt - now)}`
-          : `${copy.standings.final} · ${dayLabel(c.closesAt)}`;
+          ? `Winner in ${humanDuration(c.crownAt - now)}`
+          : `Final · ${dayLabel(c.closesAt)}`;
+  const rows = board?.rows ?? [];
+  const showBar = view === 'live' && Boolean(board?.me && board.myRank);
 
   return (
-    <Page>
+    <Page bottomPad={showBar ? 120 : 48} overlay={showBar && board ? <MyRankBar board={board} /> : null}>
       <Head>
-        <title>{`Standings: ${s.title} — Meridian`}</title>
+        <title>{view === 'winners' ? 'Winners — Meridian' : `Ranks: ${s.title} — Meridian`}</title>
       </Head>
-      <Section>
-        <Container style={{ gap: 26 }}>
-          <Reveal>
-            <Eyebrow>{copy.standings.eyebrow}</Eyebrow>
-          </Reveal>
-          <WordsReveal key={c.id} text={s.title} style={layout.type.hero} color={light.ink} />
-          <Reveal delay={120}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              {phase === 'open' ? <LiveDot /> : null}
-              <T v="label">{status}</T>
-            </View>
-          </Reveal>
-          <Reveal delay={160}>
-            <View style={{ gap: 12 }}>
-              <Segmented
-                label="Competition"
-                value={kind}
-                onChange={(k) => go(k, dayKey)}
-                options={KINDS.map((k) => ({ value: k, label: SESSIONS[k].title }))}
-              />
-              <Segmented
-                label="Day"
-                value={dayKey}
-                onChange={(d) => go(kind, d)}
-                options={days.map((d, i) => ({ value: d, label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : dayLabel(new Date(`${d}T12:00:00`).getTime()) }))}
-              />
-            </View>
-          </Reveal>
-        </Container>
-      </Section>
-      <Section style={{ paddingTop: layout.isPhone ? 28 : 48 }}>
-        <Container style={{ flexDirection: wide ? 'row' : 'column', gap: wide ? 64 : 28 }}>
-          <View style={{ flex: wide ? 0.75 : undefined, gap: 24 }}>
-            <Reveal>
-              <View style={{ gap: 4 }}>
-                <T v="label" muted>
-                  {phase === 'final' ? 'Champion' : copy.standings.crownLine}
-                </T>
-                <T v="xl" style={{ fontFamily: FONTS.black }}>
-                  {leader ? signed(leader.score) : '—'}
-                </T>
-                {leader ? (
-                  <T v="title">
-                    @{leader.handle}
-                    {leader.city ? ` · ${leader.city}` : ''}
-                  </T>
-                ) : null}
-              </View>
-            </Reveal>
-            <Reveal delay={80}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28 }}>
-                <Fact label={copy.standings.players} value={num(board?.total ?? 0)} />
-                {phase === 'open' ? <Fact label={copy.standings.playingNow} value={num(board?.live ?? 0)} /> : null}
-                {me && board?.myRank ? <Fact label={copy.standings.you} value={ordinal(board.myRank)} /> : null}
-                {me && leader && me.uid !== leader.uid ? <Fact label={copy.standings.gap} value={String(leader.score - me.score)} /> : null}
-              </View>
-            </Reveal>
-            {!me && phase !== 'upcoming' ? (
-              <Reveal delay={120}>
-                <View style={{ gap: 12 }}>
-                  <T v="body" muted>
-                    {copy.standings.notPlayed}
-                  </T>
-                  {phase === 'open' ? <Button label="Go to the lobby" variant="ink" href={`/competition/${c.id}`} /> : null}
+      <Container style={{ gap: 16, maxWidth: 820 }}>
+        <PopIn>
+          <T v="xl" accessibilityRole="header">
+            Ranks
+          </T>
+        </PopIn>
+        <PopIn index={1}>
+          <Segmented
+            label="Show"
+            stretch
+            value={view}
+            onChange={(v) => router.setParams({ view: v })}
+            options={[
+              { value: 'live', label: 'Scores' },
+              { value: 'winners', label: 'Winners' },
+            ]}
+          />
+        </PopIn>
+
+        {view === 'winners' ? (
+          <Winners />
+        ) : (
+          <>
+            <PopIn index={2}>
+              {past ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <Chip tone="solid" icon="clock">
+                    {dayLabel(c.opensAt)}
+                  </Chip>
+                  <Button label="Back to today" size="s" variant="ink" iconLeft="arrow-left" onPress={() => router.setParams({ c: competitionId(todayKey, parsed.kind) })} />
                 </View>
-              </Reveal>
-            ) : null}
-            <Reveal delay={160}>
-              <T v="bodyS" muted style={{ maxWidth: 420 }}>
-                {copy.rules.tieBreak}
-              </T>
-            </Reveal>
-          </View>
-          <View style={{ flex: wide ? 1.4 : undefined }}>
+              ) : (
+                <Segmented label="Game" scroll value={parsed.kind} onChange={pick} options={KINDS.map((k) => ({ value: k, label: SESSIONS[k].title }))} />
+              )}
+            </PopIn>
+
+            <PopIn index={3}>
+              <Card pad={14} contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <SessionTile kind={parsed.kind} size={48} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <T v="s" fit={0.7}>
+                    {s.title}
+                  </T>
+                  <T v="label" muted>
+                    {status}
+                  </T>
+                </View>
+                {board ? (
+                  <Chip tone="solid" icon="you">
+                    {num(board.total)}
+                  </Chip>
+                ) : null}
+              </Card>
+            </PopIn>
+
             {phase === 'upcoming' ? (
-              <T v="bodyL" muted>
-                {`Doors open at ${clockTime(c.opensAt)}. ${c.registeredCount ? `${num(c.registeredCount)} registered so far.` : ''}`}
-              </T>
-            ) : board && board.rows.length === 0 ? (
-              <T v="bodyL" muted>
-                {copy.standings.empty}
-              </T>
+              <Card contentStyle={{ gap: 12 }}>
+                <T v="title">{`${s.title} starts at ${clockTime(c.opensAt)}.`}</T>
+                <Button label={action.kind === 'register' ? 'Save my spot' : 'Open the game'} href={`/competition/${c.id}`} />
+              </Card>
+            ) : board && rows.length === 0 ? (
+              <Card contentStyle={{ gap: 12 }}>
+                <T v="title">No one has played yet. Be the first!</T>
+                {action.kind === 'play' ? <Button label="Play" iconLeft="play" idle="pulse" href={`/competition/${c.id}`} /> : null}
+              </Card>
             ) : (
-              <TimingTower board={board} limit={50} />
+              <>
+                <Podium key={c.id} rows={rows} />
+                <TimingTower board={board} limit={50} offset={3} />
+              </>
             )}
-          </View>
-        </Container>
-      </Section>
+          </>
+        )}
+      </Container>
     </Page>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+/** Your own place, pinned just above the tab bar so you never have to hunt for it. */
+function MyRankBar({ board }: { board: LeaderboardView }) {
+  const light = useLight();
+  const insets = useSafeAreaInsets();
+  const tabBar = useTabBarSpace();
+  const motion = useMotionOK();
+  const y = useSharedValue(motion ? 90 : 0);
+  useEffect(() => {
+    if (motion) y.set(withSpring(0, springs.pop));
+  }, [motion, y]);
+  const rise = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
+  const me = board.me!;
   return (
-    <View style={{ gap: 2 }}>
-      <T v="label" muted>
-        {label}
-      </T>
-      <T v="m" style={{ fontFamily: FONTS.extra }}>
-        {value}
-      </T>
-    </View>
+    <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 16, right: 16, bottom: (tabBar || insets.bottom + 8) + 6, alignItems: 'center' }, rise]}>
+      <View
+        accessible
+        accessibilityLabel={`You are number ${board.myRank} of ${board.total}, with ${me.score} points`}
+        style={{
+          width: '100%',
+          maxWidth: 788,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingVertical: 10,
+          paddingHorizontal: 14,
+          borderRadius: 20,
+          backgroundColor: light.sun,
+          boxShadow: `0px 4px 0px 0px ${light.sunLip}, 0px 12px 24px -10px ${light.shadow}`,
+        }}
+      >
+        <Avatar seed={me.avatarSeed} size={34} />
+        <View style={{ flex: 1 }}>
+          <T v="title" color={light.onSun} fit={0.7}>
+            {`You are #${num(board.myRank ?? 0)}`}
+          </T>
+          <T v="label" color={light.onSun}>
+            {`of ${num(board.total)} players`}
+          </T>
+        </View>
+        <T v="m" color={light.onSun}>
+          {signed(me.score)}
+        </T>
+      </View>
+    </Animated.View>
   );
 }

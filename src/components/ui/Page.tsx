@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayout } from '@/theme/layout';
 import { useLight } from '@/theme/LightProvider';
 import { ScrollScene } from '../motion/ScrollScene';
+import { useTabBarSpace } from '../nav/TabBar';
 import { TOP_NAV_HEIGHT, TopNav } from '../nav/TopNav';
 import { WorldBackdrop } from '../sky/World';
 import { Button } from './Button';
@@ -17,16 +18,20 @@ export function Page({
   flush,
   bottomPad = 48,
   nav,
+  overlay,
 }: {
   children: ReactNode;
   flush?: boolean;
   bottomPad?: number;
   /** Screens outside the tabs bring their own navigation: the top bar, or a way back on phones. */
   nav?: boolean;
+  /** pinned above the content (and above the tab bar), e.g. your own rank */
+  overlay?: ReactNode;
 }) {
   const light = useLight();
   const { topNav } = useLayout();
   const insets = useSafeAreaInsets();
+  const tabBar = useTabBarSpace();
   // A page in its own light (results at midnight) needs a status bar that reads on it.
   const focused = useIsFocused();
   const scrollY = useSharedValue(0);
@@ -40,16 +45,15 @@ export function Page({
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: flush ? 0 : topNav ? TOP_NAV_HEIGHT + insets.top + 24 : insets.top + 20,
-          paddingBottom: bottomPad,
+          paddingBottom: bottomPad + (tabBar || (nav ? insets.bottom : 0)),
         }}
       >
         {nav && !topNav ? (
-          <Container style={{ paddingBottom: 12 }}>
+          <Container style={{ paddingBottom: 8 }}>
             <Button
               label="Back"
-              variant="ghost"
+              variant="ink"
               size="s"
-              icon={null}
               iconLeft="arrow-left"
               onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
             />
@@ -64,6 +68,7 @@ export function Page({
           style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, backgroundColor: light.sky[0] }, backdrop]}
         />
       ) : null}
+      {overlay}
       {nav && topNav ? <TopNav /> : null}
     </View>
   );

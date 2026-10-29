@@ -10,21 +10,21 @@ interface LogoProps {
   sun?: string;
 }
 
-/** Mark + wordmark. The wordmark is set wide in Big Shoulders Black. */
+/** Sunny + the wordmark, round and bold. */
 export function Logo({ size = 18, color, sun }: LogoProps) {
   const light = useLight();
   const ink = color ?? light.ink;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.45 }} accessible accessibilityLabel="Meridian">
-      <Mark size={size * 1.55} sun={sun ?? light.sun} line={ink} />
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.4 }} accessible accessibilityLabel="Meridian">
+      <Mark size={size * 1.9} sun={sun ?? light.sun} line="#3A2200" />
       <T
         v="label"
         color={ink}
-        style={{ fontFamily: FONTS.black, fontSize: size, lineHeight: size * 1.1, letterSpacing: size * 0.32 }}
+        style={{ fontFamily: FONTS.display, fontSize: size * 1.25, lineHeight: size * 1.5, letterSpacing: 0.2 }}
         accessibilityElementsHidden
         importantForAccessibility="no"
       >
-        MERIDIAN
+        Meridian
       </T>
     </View>
   );

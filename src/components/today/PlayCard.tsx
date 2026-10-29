@@ -40,7 +40,7 @@ export function PlayCard() {
 
   let line: string;
   if (action.kind === 'resume') line = copy.play.stillGoing;
-  else if (action.kind === 'done') line = isLeader ? copy.play.youLead : copy.play.youScored(signed(action.score));
+  else if (action.kind === 'done') line = isLeader ? copy.play.youLead : copy.play.youScored(action.score, signed(action.score));
   else if (c.kind !== 'daily' && action.kind === 'play') line = copy.play.sessionOpen(title);
   else line = leader ? copy.play.topScore(num(leader.score)) : copy.play.beFirst;
 
