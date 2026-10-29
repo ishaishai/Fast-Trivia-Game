@@ -1,32 +1,37 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import { View, type GestureResponderEvent } from 'react-native';
 import { isGameError } from '@shared/errors';
-import { SESSIONS, localZone, parseCompetitionId } from '@shared/schedule';
+import { SESSIONS, parseCompetitionId } from '@shared/schedule';
 import type { Competition } from '@shared/types';
 import { play } from '@/audio/sound';
 import { useBackend } from '@/backend/BackendProvider';
-import { WordsReveal, Odometer } from '@/components/motion/Kinetic';
-import { Reveal, Section } from '@/components/motion/ScrollScene';
+import { Sunny } from '@/components/brand/Sunny';
+import { Confetti } from '@/components/fx/Confetti';
+import { Odometer } from '@/components/motion/Kinetic';
+import { Float, PopIn, useAmbientClock } from '@/components/motion/Playful';
 import { playCurtain } from '@/components/nav/TransitionOverlay';
-import { LightWindow } from '@/components/sky/LightWindow';
-import { TimingTower } from '@/components/standings/TimingTower';
+import { WorldDecor } from '@/components/sky/World';
+import { Podium } from '@/components/standings/Podium';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Gradient } from '@/components/ui/Gradient';
 import { Container, Page } from '@/components/ui/Page';
-import { Eyebrow, Hairline, LiveDot } from '@/components/ui/bits';
+import { Chip, LiveDot } from '@/components/ui/bits';
 import { T } from '@/components/ui/Text';
 import { toast } from '@/components/ui/Toasts';
-import { copy, inSentence } from '@/copy/en';
+import { copy } from '@/copy/en';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useNow } from '@/hooks/useNow';
-import { clockTime, countdown, dayLabel, num, signed } from '@/lib/format';
-import { lightOf, statusOf } from '@/lib/status';
+import { clockTime, countdown, dayLabel, signed } from '@/lib/format';
+import { actionOf, countdownTarget, lightOf, statusOf } from '@/lib/status';
+import { statusLine } from '@/lib/statusLine';
 import { useGame } from '@/stores/game';
 import { useLayout } from '@/theme/layout';
 import { LightScope, useLight } from '@/theme/LightProvider';
-import { LIGHTS } from '@/theme/palette';
+import { CARD } from '@/theme/palette';
+import { radius } from '@/theme/shape';
 import { FONTS } from '@/theme/typography';
 
 export default function CompetitionRoute() {
@@ -69,49 +74,39 @@ export default function CompetitionRoute() {
   );
 }
 
+const TO: Record<'signup' | 'start' | 'end' | 'winner', string> = {
+  signup: 'Sign-up opens in',
+  start: 'Starts in',
+  end: 'Ends in',
+  winner: 'Winner in',
+};
+
 function Lobby({ competition: c }: { competition: Competition }) {
   const backend = useBackend();
   const day = useGame((s) => s.day);
   const now = useNow(1000);
   const layout = useLayout();
   const light = useLight();
-  const board = useLeaderboard(c.id, 10);
+  const board = useLeaderboard(c.id, 3);
   const [busy, setBusy] = useState(false);
   const s = SESSIONS[c.kind];
   const st = statusOf(c, now, day);
+  const action = actionOf(c, now, day);
+  const target = countdownTarget(c, st);
   const isDaily = c.kind === 'daily';
-  const wide = layout.isDesktop;
+  const tomorrow = Boolean(day && c.dayKey !== day.dayKey);
 
-  // The doors-open moment.
-  const flash = useSharedValue(0);
+  // The doors-open moment: a chime and a shower of confetti.
+  const [cheer, setCheer] = useState(0);
   const previous = useRef(st.phase);
   useEffect(() => {
     if (previous.current === 'upcoming' && st.phase === 'open') {
       play('open');
-      toast(`${s.title}: the doors are open.`);
-      flash.value = withSequence(withTiming(1, { duration: 160 }), withTiming(0, { duration: 900 }));
+      toast(`${s.title} is open. Go!`);
+      setCheer((n) => n + 1);
     }
     previous.current = st.phase;
-  }, [flash, s.title, st.phase]);
-  const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value * 0.5 }));
-
-  let target: number | null = null;
-  let targetLabel = '';
-  if (st.phase === 'upcoming') {
-    if (st.reg === 'not-yet' && c.regOpensAt) {
-      target = c.regOpensAt;
-      targetLabel = 'Registration opens in';
-    } else {
-      target = c.opensAt;
-      targetLabel = 'Doors open in';
-    }
-  } else if (st.phase === 'open') {
-    target = c.closesAt;
-    targetLabel = 'Doors close in';
-  } else if (st.phase === 'closing') {
-    target = c.crownAt;
-    targetLabel = 'Crowned in';
-  }
+  }, [s.title, st.phase]);
 
   const act = async (fn: () => Promise<void>, done: string) => {
     setBusy(true);
@@ -126,170 +121,110 @@ function Lobby({ competition: c }: { competition: Competition }) {
   };
   const enter = (e: GestureResponderEvent) => playCurtain(e, light.sun, () => router.push(`/run/${c.id}`));
 
-  const primary = st.running ? (
-    <Button label="Back to your run" onPress={() => router.push(`/run/${c.id}`)} />
-  ) : st.canEnter ? (
-    <Button label={copy.day.enter(s.title)} onPress={enter} accessibilityHint="Starts your one run for this competition" />
-  ) : st.mine ? (
-    <Button label={`${copy.day.results}: ${signed(st.mine.score)}`} href={`/results/${c.id}`} />
-  ) : st.canRegister ? (
-    <Button label={`Register for ${s.title}`} loading={busy} onPress={() => act(() => backend.register(c.id), `Registered. Doors open at ${clockTime(c.opensAt)}.`)} />
-  ) : st.canCancel ? (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-      <View style={{ height: 60, paddingHorizontal: 24, borderRadius: 999, backgroundColor: light.sun, justifyContent: 'center' }}>
-        <T v="title" color={light.onSun}>
-          {copy.day.registered}
-        </T>
-      </View>
+  const primary =
+    action.kind === 'resume' ? (
+      <Button label={copy.play.keepPlaying} size="xl" iconLeft="play" stretch idle="pulse" onPress={() => router.push(`/run/${c.id}`)} />
+    ) : action.kind === 'play' ? (
+      <Button label={copy.play.play} size="xl" iconLeft="play" stretch idle="pulse" onPress={enter} accessibilityHint="Starts your one game" />
+    ) : action.kind === 'done' ? (
+      <Button label={`${copy.play.myScore}: ${signed(action.score)}`} size="l" stretch href={`/results/${c.id}`} />
+    ) : action.kind === 'register' ? (
       <Button
-        label={copy.day.cancel}
-        variant="ghost"
-        icon={null}
-        disabled={busy}
-        onPress={() => act(() => backend.unregister(c.id), 'Registration cancelled.')}
+        label={copy.play.saveSpot}
+        size="xl"
+        stretch
+        idle="pulse"
+        loading={busy}
+        onPress={() => act(() => backend.register(c.id), `You’re in! ${s.title} starts at ${clockTime(c.opensAt)}${tomorrow ? ' tomorrow' : ''}.`)}
       />
-    </View>
-  ) : st.missed ? (
-    <T v="bodyL" muted>
-      {copy.day.registrationClosed}
-    </T>
-  ) : st.reg === 'not-yet' ? (
-    <T v="bodyL" muted>
-      Registration opens 24 hours before the doors.
-    </T>
-  ) : null;
+    ) : action.kind === 'registered' ? (
+      <View style={{ gap: 10, alignItems: 'center' }}>
+        <Chip tone="good" icon="check" style={{ alignSelf: 'center', height: 40, paddingHorizontal: 18 }}>
+          {copy.play.youreIn}
+        </Chip>
+        <Button label="Cancel my spot" size="s" variant="ghost" disabled={busy} onPress={() => act(() => backend.unregister(c.id), 'Your spot is cancelled.')} />
+      </View>
+    ) : action.kind === 'missed' || action.kind === 'closing' || action.kind === 'final' ? (
+      <Button label={copy.play.ranks} variant="ink" size="l" iconLeft="trophy" stretch href={`/standings?c=${c.id}`} />
+    ) : null;
 
-  const facts: [string, string][] = [];
-  if (!isDaily && st.phase === 'upcoming') facts.push(['Registered', num(c.registeredCount)]);
-  if (st.phase !== 'upcoming') facts.push([copy.standings.players, num(c.playersCount)]);
-  if (st.phase === 'open') facts.push([copy.standings.playingNow, num(c.liveCount)]);
-  if (c.champion) facts.push(['Champion', `@${c.champion.handle}`]);
-
+  const rows = board?.rows ?? [];
   return (
-    <Page nav>
+    <Page nav overlay={<Confetti fire={cheer} />}>
       <Head>
         <title>{`${s.title} — Meridian`}</title>
       </Head>
-      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: light.sun, zIndex: 5 }, flashStyle]} />
-      <Section>
-        <Container style={{ flexDirection: wide ? 'row' : 'column', gap: wide ? 64 : 32 }}>
-          <View style={{ flex: wide ? 1.1 : undefined, gap: 22 }}>
-            <Reveal delay={60}>
-              <Eyebrow>{`${s.eyebrow} · ${dayLabel(c.opensAt)}`}</Eyebrow>
-            </Reveal>
-            <WordsReveal text={s.title} style={layout.type.hero} color={light.ink} delay={120} />
-            <Reveal delay={240}>
-              <View style={{ gap: 8 }}>
-                <T v="bodyL" muted style={{ maxWidth: 560 }}>
-                  {s.blurb}
+      <Container style={{ gap: 16, maxWidth: 640 }}>
+        <PopIn from={0.85}>
+          <Card pad={0} radius={radius.xl}>
+            <Banner mood={action.kind === 'missed' ? 'worried' : st.phase === 'final' ? 'sleepy' : 'happy'} />
+            <View style={{ padding: 22, gap: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <T v="l" fit={0.7} style={{ flex: 1 }} accessibilityRole="header">
+                  {s.title}
                 </T>
-                <T v="label">
-                  {isDaily ? 'Open 00:00 – 24:00, your time' : `${clockTime(c.opensAt)} – ${clockTime(c.closesAt)} · Registration required`}
-                </T>
+                <Chip tone="solid" dot={st.phase === 'open'}>
+                  {tomorrow ? 'Tomorrow' : copy.sessions[c.kind].tag}
+                </Chip>
               </View>
-            </Reveal>
-
-            {target ? (
-              <Reveal delay={320}>
-                <View style={{ gap: 6 }}>
+              <T v="body" muted>
+                {s.blurb}
+              </T>
+              <T v="label">
+                {isDaily ? `Open all day · ${dayLabel(c.opensAt)}` : `${dayLabel(c.opensAt)} · ${clockTime(c.opensAt)} – ${clockTime(c.closesAt)} · sign up first`}
+              </T>
+              {target ? (
+                <View style={{ backgroundColor: CARD.deep, borderRadius: 20, padding: 14, alignItems: 'center', gap: 4 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    {st.phase === 'open' ? <LiveDot /> : null}
+                    {st.phase === 'open' ? <LiveDot size={7} /> : null}
                     <T v="label" muted>
-                      {targetLabel}
+                      {TO[target.to]}
                     </T>
                   </View>
                   <Odometer
-                    value={countdown(target - now)}
-                    accessibilityLabel={`${targetLabel} ${countdown(target - now)}`}
-                    style={{ fontFamily: FONTS.thin, fontSize: layout.isPhone ? 72 : 128, lineHeight: layout.isPhone ? 74 : 124, color: light.ink, letterSpacing: -2 }}
+                    value={countdown(target.at - now)}
+                    accessibilityLabel={`${TO[target.to]} ${countdown(target.at - now)}`}
+                    style={{ fontFamily: FONTS.num, fontSize: layout.isPhone ? 44 : 56, lineHeight: layout.isPhone ? 52 : 66, color: CARD.ink }}
                   />
                 </View>
-              </Reveal>
-            ) : null}
+              ) : (
+                <T v="title">{statusLine(action, c, now)}</T>
+              )}
+              {action.kind === 'missed' ? <T v="body" muted>{copy.status.missed}</T> : null}
+              {primary}
+            </View>
+          </Card>
+        </PopIn>
 
-            <Reveal delay={380}>
-              <View style={{ gap: 16 }}>{primary}</View>
-            </Reveal>
-
-            {facts.length ? (
-              <Reveal delay={440}>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 32, marginTop: 8 }}>
-                  {facts.map(([label, value]) => (
-                    <View key={label} style={{ gap: 2 }}>
-                      <T v="label" muted>
-                        {label}
-                      </T>
-                      <T v="m" style={{ fontFamily: FONTS.extra }}>
-                        {value}
-                      </T>
-                    </View>
-                  ))}
-                </View>
-              </Reveal>
-            ) : null}
-
-            <Reveal delay={500}>
-              <View style={{ gap: 14, marginTop: 12 }}>
-                <Hairline />
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 24 }}>
-                  {[
-                    ['60 s', 'of answering'],
-                    ['3 s', 'a question'],
-                    ['+3 / −1', 'right / wrong'],
-                    [`${day?.skipsLeft ?? 24}`, 'skips left today'],
-                  ].map(([n, label]) => (
-                    <View key={label} style={{ gap: 2 }}>
-                      <T v="s" style={{ fontFamily: FONTS.extra }}>
-                        {n}
-                      </T>
-                      <T v="label" muted>
-                        {label}
-                      </T>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </Reveal>
-          </View>
-
-          <View style={{ flex: wide ? 1 : undefined, gap: 28 }}>
-            {!layout.isPhone ? (
-              <Reveal delay={200}>
-                <LightWindow
-                  light={lightOf(c, now)}
-                  minutes={isDaily ? localZone.minutesOf(now) : localZone.minutesOf(c.opensAt)}
-                  label={`${isDaily ? 'Now' : clockTime(c.opensAt)} · ${LIGHTS[lightOf(c, now)].label}`}
-                  width={wide ? Math.min(560, layout.width * 0.38) : layout.width - layout.gutter * 2}
-                  height={wide ? 300 : 220}
-                />
-              </Reveal>
-            ) : null}
-            {st.phase !== 'upcoming' ? (
-              <Reveal delay={300}>
-                <View style={{ gap: 14 }}>
-                  <T v="label" muted>
-                    {st.phase === 'final' ? copy.standings.final : copy.standings.live} · {s.title}
-                  </T>
-                  {board && board.rows.length === 0 ? (
-                    <T v="body" muted>
-                      {copy.standings.empty}
-                    </T>
-                  ) : (
-                    <TimingTower board={board} limit={10} />
-                  )}
-                  <Button label={copy.standings.full} variant="ink" href={`/standings?c=${c.id}`} />
-                </View>
-              </Reveal>
-            ) : (
-              <Reveal delay={300}>
-                <T v="bodyL" muted style={{ maxWidth: 480 }}>
-                  {`Everyone in ${inSentence(s.title)} gets the same 80 questions in the same order. Standings go live the moment the doors open.`}
-                </T>
-              </Reveal>
-            )}
-          </View>
-        </Container>
-      </Section>
+        {st.phase !== 'upcoming' && rows.length ? (
+          <PopIn index={1}>
+            <View style={{ gap: 10 }}>
+              <T v="s" accessibilityRole="header">
+                {st.phase === 'final' ? 'Winners' : 'Top players right now'}
+              </T>
+              <Podium rows={rows} compact />
+              <Button label="See all ranks" variant="ink" stretch iconLeft="trophy" href={`/standings?c=${c.id}`} />
+            </View>
+          </PopIn>
+        ) : null}
+      </Container>
     </Page>
+  );
+}
+
+function Banner({ mood }: { mood: 'happy' | 'worried' | 'sleepy' }) {
+  const light = useLight();
+  const focused = useIsFocused();
+  const t = useAmbientClock(24000, focused);
+  return (
+    <Gradient
+      colors={light.sky}
+      style={{ height: 140, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}
+    >
+      <WorldDecor kind={light.decor} t={t} dark={light.statusBar === 'light'} height={140} />
+      <Float amplitude={6}>
+        <Sunny size={116} mood={mood} />
+      </Float>
+    </Gradient>
   );
 }
