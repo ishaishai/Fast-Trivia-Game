@@ -1,0 +1,59 @@
+rules_version = '2';
+
+// Meridian: clients read, the server writes.
+// Every write — profiles, registrations, runs, scores, crowns — goes through the
+// `api` Cloud Function, which validates it against the shared rules engine.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Public profile: name, city, avatar seed, crowns and stats.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if false;
+
+      // Your own day (skips used, registrations, runs) and your run reviews.
+      match /days/{dayKey} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+      match /history/{competitionId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+    }
+
+    // The schedule and the live leaderboards.
+    match /competitions/{competitionId} {
+      allow read: if signedIn();
+      allow write: if false;
+
+      match /entries/{uid} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+      // Who registered is the server's business; the count is on the competition.
+      match /registrations/{uid} {
+        allow read, write: if false;
+      }
+    }
+
+    match /champions/{competitionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Run state holds the deck — answers included. Never readable by clients.
+    match /runs/{runId} {
+      allow read, write: if false;
+    }
+    match /handles/{handle} {
+      allow read, write: if false;
+    }
+  }
+}
