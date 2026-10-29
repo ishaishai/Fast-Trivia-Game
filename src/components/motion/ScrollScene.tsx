@@ -149,24 +149,3 @@ export function Reveal({
   }));
   return <Animated.View style={[style, animated]}>{children}</Animated.View>;
 }
-
-/** Drifts at a different speed from the page — subtle depth. */
-export function Parallax({
-  children,
-  speed = 0.15,
-  style,
-}: {
-  children: ReactNode;
-  speed?: number;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const scene = useScene();
-  const section = useSection();
-  const motion = useMotionOK();
-  const animated = useAnimatedStyle(() => {
-    if (!scene || !motion) return {};
-    const anchor = section ? section.top.value : 0;
-    return { transform: [{ translateY: (scene.scrollY.value - anchor) * speed }] };
-  });
-  return <Animated.View style={[style, animated]}>{children}</Animated.View>;
-}

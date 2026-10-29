@@ -10,11 +10,11 @@ import { play } from '@/audio/sound';
 import { copy } from '@/copy/en';
 import { useLayout } from '@/theme/layout';
 import { useLight } from '@/theme/LightProvider';
-import { SIGNAL } from '@/theme/palette';
-import { FONTS } from '@/theme/typography';
-import { SunDisc } from '../sky/SunDisc';
+import { SIGNAL, TILES } from '@/theme/palette';
+import { Sunny, type Mood } from '../brand/Sunny';
+import { PixelTimer } from '../run/PixelTimer';
 import { Button } from '../ui/Button';
-import { Tap } from '../ui/Tap';
+import { Chip } from '../ui/bits';
 import { T } from '../ui/Text';
 
 type Phase = 'idle' | 'live' | 'done';
@@ -72,82 +72,69 @@ export function TryOne() {
   );
 
   const right = q && pick !== null ? q.order[pick] === q.def.c : false;
-  const verdict = !q || phase !== 'done' ? null : pick === null ? `${copy.run.eclipsed}. −1` : right ? `Right. +3 in ${(ms / 1000).toFixed(2)}s` : 'Wrong. −1';
+  const verdict = !q || phase !== 'done' ? null : pick === null ? `${copy.run.eclipsed}! −1` : right ? `Right! +3 in ${(ms / 1000).toFixed(2)}s` : 'Not quite. −1';
+  const mood: Mood = phase === 'done' ? (right ? 'proud' : 'worried') : phase === 'live' ? 'wow' : 'happy';
 
   return (
-    <View
-      style={{
-        backgroundColor: light.deep,
-        borderRadius: 32,
-        padding: isPhone ? 20 : 32,
-        gap: 20,
-        flexDirection: isPhone ? 'column' : 'row',
-        alignItems: isPhone ? 'stretch' : 'center',
-      }}
-    >
-      <View style={{ alignItems: 'center', justifyContent: 'center', width: isPhone ? undefined : 180 }}>
-        <SunDisc size={isPhone ? 96 : 148} color={light.sun} sky={light.deep} eclipse={eclipse} />
+    <View style={{ gap: 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <Sunny size={64} mood={mood} rays={phase !== 'done' || right} />
+        <View style={{ flex: 1, gap: 8 }}>
+          <T v="label" muted>
+            {copy.rules.tryBody}
+          </T>
+          <PixelTimer eclipse={eclipse} color={light.sun} track={light.deep} />
+        </View>
       </View>
-      <View style={{ flex: isPhone ? undefined : 1, gap: 14 }}>
-        <T v="label" muted>
-          {copy.rules.tryBody}
-        </T>
-        {q ? (
-          <>
-            <T v="title" style={{ fontFamily: FONTS.textBold, fontSize: isPhone ? 20 : 24, lineHeight: isPhone ? 26 : 30 }} accessibilityLiveRegion="polite">
-              {q.def.q}
-            </T>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {q.order.map((orig, i) => {
-                const isRight = orig === q.def.c;
-                const done = phase === 'done';
-                const bg = done && isRight ? SIGNAL.correct : done && pick === i ? SIGNAL.wrong : light.raised;
-                const fg = done && isRight ? SIGNAL.onCorrect : done && pick === i ? SIGNAL.onWrong : light.ink;
-                return (
-                  <Tap
-                    key={orig}
+      {q ? (
+        <>
+          <T v="question" style={{ fontSize: isPhone ? 21 : 24, lineHeight: isPhone ? 27 : 30 }} accessibilityLiveRegion="polite">
+            {q.def.q}
+          </T>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {q.order.map((orig, i) => {
+              const isRight = orig === q.def.c;
+              const done = phase === 'done';
+              const tile = TILES[i % TILES.length];
+              const colors =
+                done && isRight
+                  ? { bg: SIGNAL.correct, fg: SIGNAL.onCorrect, lip: SIGNAL.correctLip }
+                  : done && pick === i
+                    ? { bg: SIGNAL.wrong, fg: SIGNAL.onWrong, lip: SIGNAL.wrongLip }
+                    : { bg: tile.bg, fg: tile.fg, lip: tile.lip };
+              return (
+                <View key={orig} style={{ width: q.order.length === 2 ? '100%' : '48%', flexGrow: 1, opacity: done && !isRight && pick !== i ? 0.4 : 1 }}>
+                  <Button
+                    label={q.def.a[orig]}
+                    size="m"
+                    stretch
+                    colors={colors}
+                    icon={done && isRight ? 'check' : done && pick === i ? 'cross' : null}
                     onPress={() => answer(i)}
-                    disabled={phase !== 'live'}
-                    accessibilityRole="button"
+                    inert={phase !== 'live'}
                     accessibilityLabel={`${q.def.a[orig]}${done && isRight ? ', right answer' : ''}`}
-                    style={({ hovered }) => ({
-                      height: 46,
-                      paddingHorizontal: 18,
-                      borderRadius: 999,
-                      justifyContent: 'center',
-                      backgroundColor: hovered && phase === 'live' ? light.sun : bg,
-                      opacity: done && !isRight && pick !== i ? 0.45 : 1,
-                    })}
-                  >
-                    {({ hovered }) => (
-                      <T v="title" color={hovered && phase === 'live' ? light.onSun : fg} style={{ fontSize: 16 }}>
-                        {q.def.a[orig]}
-                      </T>
-                    )}
-                  </Tap>
-                );
-              })}
-            </View>
-            {verdict ? (
-              <View style={{ gap: 4 }} accessibilityLiveRegion="polite">
-                <T v="label" color={light.sunText}>
-                  {verdict}
+                  />
+                </View>
+              );
+            })}
+          </View>
+          {verdict ? (
+            <View style={{ gap: 6 }} accessibilityLiveRegion="polite">
+              <Chip tone={right ? 'good' : 'solid'} icon={right ? 'star' : undefined}>
+                {verdict}
+              </Chip>
+              {q.def.fact ? (
+                <T v="bodyS" muted>
+                  {q.def.fact}
                 </T>
-                {q.def.fact ? (
-                  <T v="bodyS" muted>
-                    {q.def.fact}
-                  </T>
-                ) : null}
-              </View>
-            ) : null}
-          </>
-        ) : (
-          <T v="bodyL">Three seconds feels longer than it is. Until it doesn’t.</T>
-        )}
-        {phase !== 'live' ? (
-          <Button label={q ? 'Another one' : 'Try a question'} size="m" icon="play" onPress={next} />
-        ) : null}
-      </View>
+              ) : null}
+            </View>
+          ) : null}
+        </>
+      ) : (
+        <T v="bodyL">Three seconds feels longer than it is. Ready?</T>
+      )}
+      {phase !== 'live' ? <Button label={q ? 'Another one' : 'Try a question'} size="m" iconLeft="play" onPress={next} /> : null}
     </View>
   );
 }

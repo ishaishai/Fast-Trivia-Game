@@ -23,6 +23,8 @@ export interface ButtonProps {
   icon?: IconName | null;
   iconLeft?: IconName;
   disabled?: boolean;
+  /** not pressable right now, but not greyed out either (an answer being revealed) */
+  inert?: boolean;
   loading?: boolean;
   /** Override colours when a button sits outside the page light (the run, the answer tiles). */
   colors?: { bg: string; fg: string; lip?: string; hoverBg?: string; hoverFg?: string };
@@ -39,6 +41,8 @@ const PAD: Record<Size, number> = { xl: 36, l: 28, m: 22, s: 16 };
 const FONT: Record<Size, number> = { xl: 26, l: 21, m: 18, s: 15 };
 const ICON: Record<Size, number> = { xl: 28, l: 22, m: 20, s: 17 };
 const RADIUS: Record<Size, number> = { xl: 26, l: 22, m: 18, s: 14 };
+/** Icons that read better as solid shapes. */
+const SOLID = new Set<IconName>(['play', 'star', 'bolt', 'fire', 'trophy', 'sparkle']);
 
 /**
  * Chunky game buttons: a coloured face on a darker lip. Pressing pushes the
@@ -54,6 +58,7 @@ export function Button({
   icon = null,
   iconLeft,
   disabled,
+  inert,
   loading,
   colors,
   idle,
@@ -77,11 +82,11 @@ export function Button({
     <Tap
       href={disabled ? undefined : href}
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={disabled || inert || loading}
       accessibilityRole={href ? 'link' : 'button'}
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: Boolean(disabled), busy: Boolean(loading) }}
+      accessibilityState={{ disabled: Boolean(disabled || inert), busy: Boolean(loading) }}
       style={[{ alignSelf: stretch ? 'stretch' : 'flex-start', borderRadius: RADIUS[size] }, idle ? null : style]}
     >
       {(state) =>
@@ -185,9 +190,13 @@ function ButtonFace({
       >
         {/* A soft highlight across the top half — the face looks rounded, like a sweet. */}
         <View pointerEvents="none" style={[styles.shine, { borderTopLeftRadius: r - 3, borderTopRightRadius: r - 3, height: height * 0.42 }]} />
-        {iconLeft ? <Icon name={iconLeft} color={fg} size={ICON[size]} strokeWidth={2.6} /> : null}
+        {iconLeft ? <Icon name={iconLeft} color={fg} size={ICON[size]} strokeWidth={2.6} filled={SOLID.has(iconLeft)} /> : null}
         <Label label={label} size={size} color={fg} />
-        {loading ? <ActivityIndicator size="small" color={fg} /> : icon ? <Icon name={icon} color={fg} size={ICON[size]} strokeWidth={2.6} /> : null}
+        {loading ? (
+          <ActivityIndicator size="small" color={fg} />
+        ) : icon ? (
+          <Icon name={icon} color={fg} size={ICON[size]} strokeWidth={2.6} filled={SOLID.has(icon)} />
+        ) : null}
       </Animated.View>
     </View>
   );

@@ -29,8 +29,9 @@ export function WorldBackdrop({ light: override, active = true }: { light?: Ligh
   );
 }
 
-export function WorldDecor({ kind, t, dark }: { kind: Decor; t: SharedValue<number>; dark: boolean }) {
-  const { height } = useWindowDimensions();
+export function WorldDecor({ kind, t, dark, height: box }: { kind: Decor; t: SharedValue<number>; dark: boolean; height?: number }) {
+  const window = useWindowDimensions();
+  const height = box ?? window.height;
   return (
     <>
       {kind === 'rays' ? <Sunburst t={t} /> : null}

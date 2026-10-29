@@ -1,16 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedReaction,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import { springs, useMotionOK } from '@/theme/motion';
 import { glyphRoom } from '@/theme/typography';
 import { useSection } from './ScrollScene';
@@ -210,43 +200,4 @@ export function useCountUp(to: number, { from = 0, duration = 1100, delay = 0, e
     };
   }, [animate, delay, duration, from, to]);
   return animate ? value : to;
-}
-
-/** An endless horizontal ticker. Pauses on hover, sits still for reduced motion. */
-export function Marquee({ children, speed = 36, gap = 48 }: { children: ReactNode; speed?: number; gap?: number }) {
-  const motion = useMotionOK();
-  const [width, setWidth] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const x = useSharedValue(0);
-  useEffect(() => {
-    if (!width || !motion || paused) {
-      cancelAnimation(x);
-      return;
-    }
-    const remaining = width + x.value;
-    x.value = withTiming(-width, { duration: (remaining / speed) * 1000, easing: Easing.linear }, (done) => {
-      if (done) {
-        x.value = 0;
-        x.value = withRepeat(withTiming(-width, { duration: (width / speed) * 1000, easing: Easing.linear }), -1, false);
-      }
-    });
-    return () => cancelAnimation(x);
-  }, [motion, paused, speed, width, x]);
-  const animated = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
-  return (
-    <View
-      style={{ overflow: 'hidden' }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      <Animated.View style={[{ flexDirection: 'row' }, animated]}>
-        <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', paddingRight: gap, gap }}>
-          {children}
-        </View>
-        <View style={{ flexDirection: 'row', paddingRight: gap, gap }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" aria-hidden>
-          {children}
-        </View>
-      </Animated.View>
-    </View>
-  );
 }
