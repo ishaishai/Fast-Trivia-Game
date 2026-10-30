@@ -42,7 +42,7 @@ function Layer({ day, light, from, to }: { day: SharedValue<number>; light: keyo
 
 /**
  * The band of sky the sun crosses. Sunny travels an arc with the run clock;
- * each question's three seconds is a moon sliding across Sunny's face.
+ * each question's five seconds is a moon sliding across Sunny's face.
  */
 export function RunSky({
   day,

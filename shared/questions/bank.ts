@@ -5,7 +5,7 @@
  * file (see metro.config.js). The offline mock bundles it so the game can be
  * played without a server.
  *
- * House rules for a three-second question:
+ * House rules for a five-second question:
  *  - the question reads in one glance (≈ 60 characters)
  *  - answers are short nouns or numbers (≤ 24 characters)
  *  - facts are evergreen and unambiguous; no trick wording, no negatives
