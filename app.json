@@ -28,7 +28,7 @@
       "favicon": "./assets/favicon.png",
       "name": "Glint!: Daily Trivia",
       "shortName": "Glint!",
-      "description": "A new trivia game every day. Sixty seconds, three seconds a question, one crown.",
+      "description": "A new trivia game every day. Sixty seconds, five seconds a question, one crown.",
       "themeColor": "#6B3BEA",
       "backgroundColor": "#6B3BEA"
     },

@@ -254,8 +254,8 @@ export function applyTimeout(
   lookup: QuestionLookup,
 ): { state: RunState; result: AnswerResult } {
   assertLive(prev, input.seq);
-  // An eclipse always costs exactly the question's three seconds, however long the player was
-  // away: the run clock stops at the eclipse. If fewer than three seconds of daylight were left,
+  // An eclipse always costs exactly the question's five seconds, however long the player was
+  // away: the run clock stops at the eclipse. If fewer than five seconds of daylight were left,
   // the sun set first and nothing is charged.
   const settled = settle(prev, { type: 'timeout' }, prev.questionMs, now);
   return { state: settled.state, result: result(settled, skipsLeft, lookup) };

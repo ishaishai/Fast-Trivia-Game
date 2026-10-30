@@ -399,7 +399,7 @@ function ReadyPanel({
     );
   }
   const steps = copy.run.readySteps.map((s, i) =>
-    i === 1 && practice && relaxed ? { ...s, text: '6 seconds for each question (relaxed)' } : s,
+    i === 1 && practice && relaxed ? { ...s, text: '10 seconds for each question (relaxed)' } : s,
   );
   return (
     <PopIn>

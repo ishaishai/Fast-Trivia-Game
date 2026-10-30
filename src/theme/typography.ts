@@ -2,7 +2,7 @@ import { PixelRatio, Platform, type TextStyle } from 'react-native';
 
 /**
  * Fredoka — round, chunky and friendly: headings, buttons, numbers, labels.
- * Atkinson Hyperlegible Next — designed to be read at a glance; questions get three seconds.
+ * Atkinson Hyperlegible Next — designed to be read at a glance; questions get five seconds.
  */
 export const FONTS = {
   display: 'Fredoka_700Bold',

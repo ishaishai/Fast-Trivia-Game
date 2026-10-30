@@ -1,6 +1,6 @@
 # Glint! — quick trivia for everyone
 
-A bright, bouncy trivia game that kids and adults can pick up in seconds. There's a new game every day: sixty seconds of play, three seconds per question, and one crown for the top score. Sunny, the game's sun, crosses the sky while you play, and a moon slides over Sunny's face to show each question's three seconds.
+A bright, bouncy trivia game that kids and adults can pick up in seconds. There's a new game every day: sixty seconds of play, five seconds per question, and one crown for the top score. Sunny, the game's sun, crosses the sky while you play, and a moon slides over Sunny's face to show each question's five seconds.
 
 Every screen has one obvious thing to do. **Play** has today's game and one card per session, **Ranks** has a podium and the winners, and **Me** has your stats and settings. The sky follows your time of day: morning, daytime, evening or night.
 

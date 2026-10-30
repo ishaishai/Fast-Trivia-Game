@@ -95,7 +95,8 @@ describe('timing and fair play', () => {
 
   it('turns a late answer into silence', () => {
     const s = freshRun();
-    const r = applyAnswer(s, { seq: 0, choice: correctChoice(s), clientMs: 3400 }, answerAt(s, 3400, 50), 24, lookup);
+    const late = RULES.QUESTION_MS + 400;
+    const r = applyAnswer(s, { seq: 0, choice: correctChoice(s), clientMs: late }, answerAt(s, late, 50), 24, lookup);
     expect(r.result.outcome).toBe('silent');
     expect(r.result.delta).toBe(RULES.POINTS_SILENT);
   });
@@ -141,7 +142,8 @@ describe('skips', () => {
 
   it('a skip after the eclipse is silence and keeps the skip', () => {
     const s = freshRun();
-    const r = applySkip(s, { seq: 0, clientMs: 3500 }, answerAt(s, 3500), 5, lookup);
+    const late = RULES.QUESTION_MS + 500;
+    const r = applySkip(s, { seq: 0, clientMs: late }, answerAt(s, late), 5, lookup);
     expect(r.result.outcome).toBe('silent');
     expect(r.skipUsed).toBe(false);
     expect(r.result.skipsLeft).toBe(5);
@@ -180,7 +182,7 @@ describe('finishing and resuming', () => {
     const r = resumeRun(s, s.current!.sentAt + 10 * 60_000, 24, lookup);
     expect(r.settled?.outcome).toBe('silent');
     expect(r.state.status).toBe('live');
-    expect(r.state.timeUsedMs).toBe(54_000);
+    expect(r.state.timeUsedMs).toBe(51_000 + RULES.QUESTION_MS);
   });
 
   it('resumes a live question with its elapsed time', () => {
@@ -300,7 +302,7 @@ describe('question bank', () => {
     expect(BANK.length).toBeGreaterThanOrEqual(RULES.DECK_SIZE * 4);
   });
 
-  it('is well-formed and readable in three seconds', () => {
+  it('is well-formed and readable in a question’s time', () => {
     const ids = new Set<string>();
     for (const q of [...BANK, ...PRACTICE]) {
       expect(ids.has(q.id), q.id).toBe(false);

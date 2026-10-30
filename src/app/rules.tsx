@@ -20,7 +20,7 @@ import { FONTS } from '@/theme/typography';
 
 const RULES: { n: string; text: string; icon: IconName; bg: string; lip: string }[] = [
   { n: '60s', text: 'A game lasts 60 seconds. The clock only runs while a question is showing.', icon: 'clock', ...CANDY.sky },
-  { n: '3s', text: 'You get 3 seconds for each question.', icon: 'bolt', ...CANDY.sun },
+  { n: '5s', text: 'You get 5 seconds for each question.', icon: 'bolt', ...CANDY.sun },
   { n: '+3', text: 'For every right answer.', icon: 'check', ...CANDY.mint },
   { n: '−1', text: 'For a wrong answer, or no answer in time.', icon: 'cross', ...CANDY.coral },
   { n: '24', text: 'Skips a day. A skip costs nothing.', icon: 'skip', ...CANDY.grape },

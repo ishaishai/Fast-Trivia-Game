@@ -5,10 +5,10 @@
 export const RULES = {
   /** A run is sixty seconds of answering: sunrise to sunset. */
   RUN_MS: 60_000,
-  /** Every question gives you three seconds. */
-  QUESTION_MS: 3_000,
+  /** Every question gives you five seconds. */
+  QUESTION_MS: 5_000,
   /** Practice can be relaxed for accessibility. Never used in ranked play. */
-  RELAXED_QUESTION_MS: 6_000,
+  RELAXED_QUESTION_MS: 10_000,
   /** Skips per day — one for every hour — shared across every competition. */
   SKIPS_PER_DAY: 24,
 
@@ -31,7 +31,7 @@ export const RULES = {
   SKIP_FEEDBACK_MS: 300,
   /** Network round trip the server forgives before it trusts its own clock over the client's. */
   RTT_ALLOWANCE_MS: 900,
-  /** Tolerance on the three-second deadline. */
+  /** Tolerance on the five-second deadline. */
   DEADLINE_GRACE_MS: 150,
   /** Tolerance on the sixty-second sunset. */
   SUNSET_GRACE_MS: 150,

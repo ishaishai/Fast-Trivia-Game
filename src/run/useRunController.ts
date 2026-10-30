@@ -68,7 +68,7 @@ const initialView = (skipsLeft: number): RunView => ({
 
 export function useRunController(source: RunSource, opts: { skipsLeft: number; onDone: (summary: RunSummary) => void }) {
   const [view, setView] = useState<RunView>(() => initialView(opts.skipsLeft));
-  /** 0 → 1 over the question's three seconds. */
+  /** 0 → 1 over the question's five seconds. */
   const eclipse = useSharedValue(0);
   /** 0 → 1 over the run's sixty seconds: sunrise to midnight. */
   const day = useSharedValue(0);

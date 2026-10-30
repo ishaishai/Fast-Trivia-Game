@@ -19,7 +19,7 @@ import { T } from '../ui/Text';
 
 type Phase = 'idle' | 'live' | 'done';
 
-/** One practice question with the real three-second eclipse. Doesn't count. */
+/** One practice question with the real five-second eclipse. Doesn't count. */
 export function TryOne() {
   const light = useLight();
   const { isPhone } = useLayout();
@@ -132,7 +132,7 @@ export function TryOne() {
           ) : null}
         </>
       ) : (
-        <T v="bodyL">Three seconds feels longer than it is. Ready?</T>
+        <T v="bodyL">Five seconds feels longer than it is. Ready?</T>
       )}
       {phase !== 'live' ? <Button label={q ? 'Another one' : 'Try a question'} size="m" iconLeft="play" onPress={next} /> : null}
     </View>

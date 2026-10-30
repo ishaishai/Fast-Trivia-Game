@@ -30,7 +30,7 @@ export function HowToCard() {
         <Button label={copy.play.tryOne} size="m" variant="ink" iconLeft="play" onPress={() => setTrying(true)} />
         <Button label={copy.play.allRules} size="m" variant="ghost" href="/rules" icon="chevron-right" />
       </View>
-      <Sheet visible={trying} onClose={() => setTrying(false)} title="Feel three seconds">
+      <Sheet visible={trying} onClose={() => setTrying(false)} title="Feel five seconds">
         <TryOne />
       </Sheet>
     </Card>

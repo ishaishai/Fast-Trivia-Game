@@ -5,7 +5,7 @@
 export const copy = {
   meta: {
     title: 'Glint!: Daily Trivia',
-    description: 'A new trivia game every day. Sixty seconds, three seconds a question, one crown.',
+    description: 'A new trivia game every day. Sixty seconds, five seconds a question, one crown.',
   },
   welcome: {
     hello: 'Hi! I’m Sunny.',
@@ -13,7 +13,7 @@ export const copy = {
     letsGo: 'Let’s go',
     steps: [
       { title: '60 seconds', text: 'Every game is one minute long. Answer as many questions as you can.' },
-      { title: 'Tap fast!', text: 'Each question has 3 seconds. Tap the answer you think is right.' },
+      { title: 'Tap fast!', text: 'Each question has 5 seconds. Tap the answer you think is right.' },
       { title: 'Score points', text: '+3 for a right answer, −1 for a wrong or slow one. The top score of the day wins the crown.' },
     ],
     nameTitle: 'What should we call you?',
@@ -50,7 +50,7 @@ export const copy = {
     howTo: 'How to play',
     steps: [
       { icon: 'clock', text: '60 seconds. Answer as many as you can.' },
-      { icon: 'bolt', text: '3 seconds for each question. Be quick!' },
+      { icon: 'bolt', text: '5 seconds for each question. Be quick!' },
       { icon: 'star', text: '+3 when you’re right. −1 when you’re wrong or too slow.' },
     ],
     tryOne: 'Try a question',
@@ -91,7 +91,7 @@ export const copy = {
     readyTitle: 'Ready?',
     readySteps: [
       { icon: 'clock', text: '60 seconds to answer as many as you can' },
-      { icon: 'bolt', text: '3 seconds for each question' },
+      { icon: 'bolt', text: '5 seconds for each question' },
       { icon: 'star', text: '+3 right, −1 wrong or too slow' },
     ],
     oneGo: (title: string) => `You get one go at ${title}. Leaving won’t pause the clock.`,
@@ -137,7 +137,7 @@ export const copy = {
     motion: 'Animations',
     motionHint: '“Less” keeps the timer moving and calms everything else down.',
     relaxed: 'Slower practice',
-    relaxedHint: '6 seconds a question in practice games. Real games are always 3.',
+    relaxedHint: '10 seconds a question in practice games. Real games are always 5.',
     server: 'Server',
     preview: 'Time machine',
     previewHint: 'Move the offline server’s clock to see games open and crowns land.',
