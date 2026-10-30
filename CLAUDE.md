@@ -36,5 +36,6 @@ npm run smoke:firebase # end-to-end against Firebase emulators (needs Java)
 - `backgroundImage` (linear-gradient strings) and `boxShadow` are native style props in RN 0.88 and pass through to CSS on the web; `Gradient` and `Card` wrap them. Put a shadow on a view without `overflow: 'hidden'`. Android draws outer shadows from API 28 up. Use soft shadows only on a few big cards; long lists get `flatShadow`.
 - Never read `sharedValue.value` during render. Use `.set()` in handlers so the React Compiler lint rules pass.
 - npm's global cache (`~/.npm`) isn't writable in this sandbox. Use `npm_config_cache=<scratchpad>/npm-cache npm install`.
+- **Firebase Hosting must upload `dist/assets/node_modules/`.** Expo exports package assets there, fonts included, so `firebase.json` leaves `**/node_modules/**` out of `ignore` (Firebase's default list has it). The SPA rewrite skips `/assets` and `/_expo`, so a missing asset gets a 404 rather than `index.html` served with the year-long immutable cache header.
 - `functions/.env` holds parameter defaults (`SCHEDULE_TZ`, `API_MIN_INSTANCES`). Without it, the emulator stops to prompt for them.
 - Emulators run on the `demo-glint` project id, so no real Firebase project is needed.
