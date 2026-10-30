@@ -1,6 +1,8 @@
-# Meridian — notes for working on this repo
+# Glint! — notes for working on this repo
 
 Daily trivia game for kids and adults: bright, chunky and animated, one obvious thing to do per screen. Expo SDK 58 / RN 0.88 / Expo Router (routes in `src/app`), Reanimated 4, Zustand. One codebase for web + iOS + Android. See README.md for rules, run and deploy steps.
+
+The name is **Glint!**, and the “!” is part of it. The store listing is “Glint!: Daily Trivia”. In copy, let the name end a sentence (“Welcome to Glint!”) rather than putting more punctuation after it.
 
 ## Commands
 
@@ -35,4 +37,4 @@ npm run smoke:firebase # end-to-end against Firebase emulators (needs Java)
 - Never read `sharedValue.value` during render. Use `.set()` in handlers so the React Compiler lint rules pass.
 - npm's global cache (`~/.npm`) isn't writable in this sandbox. Use `npm_config_cache=<scratchpad>/npm-cache npm install`.
 - `functions/.env` holds parameter defaults (`SCHEDULE_TZ`, `API_MIN_INSTANCES`). Without it, the emulator stops to prompt for them.
-- Emulators run on the `demo-meridian` project id, so no real Firebase project is needed.
+- Emulators run on the `demo-glint` project id, so no real Firebase project is needed.

@@ -18,7 +18,7 @@ export interface Surface {
 export type Decor = 'clouds' | 'rays' | 'sparkles' | 'stars';
 
 /**
- * Meridian is lit by the time of day. Every screen is painted in one of four
+ * Glint! is lit by the time of day. Every screen is painted in one of four
  * worlds; runs travel through all of them, sunrise to midnight. Text on the
  * sky uses the light's own ink; anything inside a card switches to `card`
  * (see CardScope).

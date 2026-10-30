@@ -66,7 +66,7 @@ export default function Welcome() {
   return (
     <View style={{ flex: 1 }} role="main">
       <Head>
-        <title>Meridian — trivia for everyone</title>
+        <title>Welcome to Glint!</title>
         <meta name="description" content={copy.meta.description} />
       </Head>
       <WorldBackdrop />

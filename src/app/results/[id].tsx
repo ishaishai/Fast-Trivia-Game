@@ -91,7 +91,7 @@ function Results({ id }: { id: string }) {
   return (
     <Page nav overlay={<Celebration score={t.score} crowned={crowned} />}>
       <Head>
-        <title>{`Your score: ${signed(t.score)} — Meridian`}</title>
+        <title>{`Your score: ${signed(t.score)} — Glint!`}</title>
       </Head>
       <Container style={{ gap: 16, maxWidth: 1040 }}>
         <View style={{ flexDirection: wide ? 'row' : 'column', gap: 16, alignItems: 'flex-start' }}>
@@ -317,7 +317,7 @@ async function share(summary: RunSummary, title: string, rank: number | null, to
     .map((r) => (r.outcome === 'correct' ? '🟩' : r.outcome === 'wrong' ? '🟥' : r.outcome === 'silent' ? '⬛' : '⬜'))
     .join('');
   const lines = [
-    `Meridian · ${title} · ${dayLabel(summary.finishedAt)}`,
+    `Glint! · ${title} · ${dayLabel(summary.finishedAt)}`,
     `${signed(summary.totals.score)} points${rank ? ` · #${num(rank)} of ${num(total)}` : ''}`,
     squares,
   ];

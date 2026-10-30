@@ -57,7 +57,7 @@ export default function Me() {
   return (
     <Page>
       <Head>
-        <title>{`@${profile.handle} — Meridian`}</title>
+        <title>{`@${profile.handle} — Glint!`}</title>
       </Head>
       <Container style={{ gap: 16, maxWidth: 1040 }}>
         <View style={{ flexDirection: wide ? 'row' : 'column', gap: 16, alignItems: 'flex-start' }}>

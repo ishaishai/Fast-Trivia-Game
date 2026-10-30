@@ -45,7 +45,7 @@ interface IconProps {
   filled?: boolean;
 }
 
-/** A 24-unit, round-capped, chunky icon set drawn for Meridian. */
+/** A 24-unit, round-capped, chunky icon set drawn for Glint! */
 export function Icon({ name, size = 22, color, strokeWidth = 2.2, filled }: IconProps) {
   const p = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
   const f = filled ? { ...p, fill: color } : p;

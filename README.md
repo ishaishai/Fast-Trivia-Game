@@ -1,4 +1,4 @@
-# Meridian — quick trivia for everyone
+# Glint! — quick trivia for everyone
 
 A bright, bouncy trivia game that kids and adults can pick up in seconds. There's a new game every day: sixty seconds of play, three seconds per question, and one crown for the top score. Sunny, the game's sun, crosses the sky while you play, and a moon slides over Sunny's face to show each question's three seconds.
 
@@ -43,6 +43,10 @@ To deploy:
 2. Copy `.env.example` to `.env`, set `EXPO_PUBLIC_BACKEND=firebase` and add your web app keys.
 3. Optional: set `SCHEDULE_TZ` in `functions/.env` (default `UTC`), and set `API_MIN_INSTANCES=1` during live events.
 4. Run `npm run deploy`. This builds the web app with Firebase and deploys hosting, rules, indexes and functions.
+
+## App stores
+
+Under the icon the app is called **Glint!** (`expo.name` in `app.json`). In the App Store and on Google Play it's listed as **Glint!: Daily Trivia**, which you set as the app name in App Store Connect and the Play Console. The iOS bundle id and the Android package are both `com.ishaishai.glint`. EAS builds and submits it (`eas.json`): `eas build --profile production`, then `eas submit`.
 
 ## Architecture
 

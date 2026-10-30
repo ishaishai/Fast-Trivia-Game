@@ -27,7 +27,7 @@ export function buildDeck(competitionId: string, bank: readonly QuestionDef[], s
   if (!parsed) throw new Error(`Bad competition id: ${competitionId}`);
   const slot = KINDS.indexOf(parsed.kind);
   const ordered = [...bank].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  const day = shuffle(ordered, mulberry32(hashString(`meridian:day:${parsed.dayKey}`)));
+  const day = shuffle(ordered, mulberry32(hashString(`glint:day:${parsed.dayKey}`)));
   const picked: QuestionDef[] = [];
   for (let i = 0; i < size && day.length > 0; i++) picked.push(day[(slot * size + i) % day.length]);
   const openers = picked.filter((q) => q.d === 1).slice(0, RULES.EASY_OPENERS);

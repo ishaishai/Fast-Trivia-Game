@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useLight } from '@/theme/LightProvider';
 import { SUNNY } from '@/theme/palette';
 import { FONTS } from '@/theme/typography';
@@ -11,12 +11,12 @@ interface LogoProps {
   sun?: string;
 }
 
-/** Sunny + the wordmark, round and bold. */
+/** Sunny + the wordmark, round and bold, with the “!” in the accent colour. */
 export function Logo({ size = 18, color, sun }: LogoProps) {
   const light = useLight();
   const ink = color ?? light.ink;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.4 }} accessible accessibilityLabel="Meridian">
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.4 }} accessible accessibilityLabel="Glint!">
       <Mark size={size * 1.9} sun={sun ?? light.sun} line={SUNNY.face} />
       <T
         v="label"
@@ -25,7 +25,7 @@ export function Logo({ size = 18, color, sun }: LogoProps) {
         accessibilityElementsHidden
         importantForAccessibility="no"
       >
-        Meridian
+        Glint<Text style={{ color: light.sunText }}>!</Text>
       </T>
     </View>
   );

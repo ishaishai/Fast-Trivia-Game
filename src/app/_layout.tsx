@@ -66,7 +66,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
       <Gradient colors={light.sky} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
         <Mark size={80} sun={light.sun} line={SUNNY.face} />
         <T v="m" align="center">
-          Meridian couldn’t start.
+          The game couldn’t start.
         </T>
         <T v="body" muted align="center" style={{ maxWidth: 460 }}>
           {error}
@@ -81,9 +81,9 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: light.field }, animation: 'fade' }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
-        <Stack.Screen name="competition/[id]" options={{ animation: Platform.OS === 'web' ? 'fade' : 'default', title: 'Competition — Meridian' }} />
-        <Stack.Screen name="results/[id]" options={{ animation: 'fade', title: 'Your run — Meridian' }} />
-        <Stack.Screen name="rules" options={{ animation: Platform.OS === 'web' ? 'fade' : 'default', title: 'Rules — Meridian' }} />
+        <Stack.Screen name="competition/[id]" options={{ animation: Platform.OS === 'web' ? 'fade' : 'default', title: 'Competition — Glint!' }} />
+        <Stack.Screen name="results/[id]" options={{ animation: 'fade', title: 'Your run — Glint!' }} />
+        <Stack.Screen name="rules" options={{ animation: Platform.OS === 'web' ? 'fade' : 'default', title: 'Rules — Glint!' }} />
         {/* On the web a modal renders as a small card; the run needs the whole window. */}
         <Stack.Screen
           name="run/[id]"

@@ -165,7 +165,7 @@ function RunScreen({ id }: { id: string }) {
   }, []);
 
   const kind = practice ? null : parseCompetitionId(id)?.kind;
-  const title = practice ? copy.run.practice : kind ? SESSIONS[kind].title : 'Meridian';
+  const title = practice ? copy.run.practice : kind ? SESSIONS[kind].title : 'Glint!';
   const split = layout.splitRun;
   // Short phones (SE, small Androids) get a lower sky and tighter tiles so all four answers fit.
   const short = !split && layout.height < 740;
@@ -210,7 +210,7 @@ function RunScreen({ id }: { id: string }) {
     <LightScope name={lightName}>
       <View style={{ flex: 1, flexDirection: split ? 'row' : 'column' }} role="main">
         <Head>
-          <title>{`${title} — Meridian`}</title>
+          <title>{`${title} — Glint!`}</title>
         </Head>
         <StatusBar style={light.statusBar} />
         <RunBackdrop day={run.day} />

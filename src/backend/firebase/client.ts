@@ -32,7 +32,7 @@ let clients: FirebaseClients | null = null;
 export function firebase(): FirebaseClients {
   if (clients) return clients;
   const config = env.emulators
-    ? { apiKey: env.apiKey || 'demo-key', projectId: env.projectId || 'demo-meridian', appId: env.appId || 'demo-app', authDomain: 'localhost' }
+    ? { apiKey: env.apiKey || 'demo-key', projectId: env.projectId || 'demo-glint', appId: env.appId || 'demo-app', authDomain: 'localhost' }
     : { apiKey: env.apiKey, authDomain: env.authDomain, projectId: env.projectId, storageBucket: env.storageBucket, messagingSenderId: env.messagingSenderId, appId: env.appId };
   if (!config.apiKey || !config.projectId) {
     throw new Error(

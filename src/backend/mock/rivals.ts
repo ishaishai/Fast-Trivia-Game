@@ -53,7 +53,7 @@ export function fieldFor(c: Competition): Rival[] {
 }
 
 function generate(c: Competition): Rival[] {
-  const rng = rngFor(`meridian:rivals:${c.id}`);
+  const rng = rngFor(`glint:rivals:${c.id}`);
   const f = FIELDS[c.kind];
   const size = Math.round(f.min + (f.max - f.min) * rng());
   const rivals: Rival[] = [];

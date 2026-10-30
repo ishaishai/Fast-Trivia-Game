@@ -50,7 +50,7 @@ export function TopNav() {
           }}
         >
           <CardScope>
-            <Tap href="/" accessibilityRole="link" accessibilityLabel="Meridian, play" style={{ paddingVertical: 6, borderRadius: 12 }}>
+            <Tap href="/" accessibilityRole="link" accessibilityLabel="Glint!, play" style={{ paddingVertical: 6, borderRadius: 12 }}>
               <Logo size={15} />
             </Tap>
             <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', gap: isDesktop ? 8 : 4 }}>

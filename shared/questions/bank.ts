@@ -1,5 +1,5 @@
 /**
- * The competitive question bank — written in-house for Meridian.
+ * The competitive question bank — written in-house for Glint!
  *
  * SERVER-ONLY in production: firebase builds of the app never include this
  * file (see metro.config.js). The offline mock bundles it so the game can be

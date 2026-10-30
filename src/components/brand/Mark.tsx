@@ -9,7 +9,7 @@ interface MarkProps {
   line: string;
 }
 
-/** The Meridian mark: Sunny, still. Used where nothing should move (boot, icons, errors). */
+/** The Glint! mark: Sunny, still. Used where nothing should move (boot, icons, errors). */
 export function Mark({ size = 28, sun, line }: MarkProps) {
   return (
     <View pointerEvents="none" aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

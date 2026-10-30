@@ -16,7 +16,7 @@ if (!existsSync(file)) {
 }
 
 const site = process.env.EXPO_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? '';
-const title = 'Meridian — quick trivia for everyone';
+const title = 'Glint!: Daily Trivia';
 const description = 'A new trivia game every day. Sixty seconds, three seconds a question, one crown.';
 copyFileSync(join(root, 'assets', 'og.png'), join(root, 'dist', 'og.png'));
 

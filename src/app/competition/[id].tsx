@@ -152,7 +152,7 @@ function Lobby({ competition: c }: { competition: Competition }) {
   return (
     <Page nav overlay={<Confetti fire={cheer} />}>
       <Head>
-        <title>{`${s.title} — Meridian`}</title>
+        <title>{`${s.title} — Glint!`}</title>
       </Head>
       <Container style={{ gap: 16, maxWidth: 640 }}>
         <PopIn from={0.85}>

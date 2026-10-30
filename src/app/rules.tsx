@@ -32,7 +32,7 @@ const FAQ: [string, string][] = [
   ['What if I close the app in the middle?', 'The clock keeps running. Come back quickly and you carry on where you left off.'],
   ['Do skips carry over?', 'No. You get 24 a day, shared by every game. They refill at midnight.'],
   ['Does a slow connection cost me time?', 'No. The clock only counts while a question is on screen, and the time between questions is set aside for the network.'],
-  ['Why “Meridian”?', 'A meridian is the line the sun crosses at its highest point. Every day, somebody gets there first.'],
+  ['Why “Glint!”?', 'A glint is a quick flash of sunlight. It’s the spark you get when you suddenly know the answer.'],
 ];
 
 export default function Rules() {
@@ -42,7 +42,7 @@ export default function Rules() {
   return (
     <Page nav>
       <Head>
-        <title>How to play — Meridian</title>
+        <title>How to play — Glint!</title>
       </Head>
       <Container style={{ gap: 16, maxWidth: 820 }}>
         <PopIn>

@@ -1,6 +1,6 @@
 import type { Light } from './palette';
 
-const STYLE_ID = 'meridian-global';
+const STYLE_ID = 'glint-global';
 
 const CSS = `
 html, body, #root { height: 100%; background-color: var(--m-field); background-image: var(--m-sky); }

@@ -1,15 +1,15 @@
 /**
- * Every word in Meridian. Short sentences anyone can read, kids included.
+ * Every word in Glint! Short sentences anyone can read, kids included.
  * One action keeps one name: you "play" a game and "save your spot" in one.
  */
 export const copy = {
   meta: {
-    title: 'Meridian — quick trivia for everyone',
+    title: 'Glint!: Daily Trivia',
     description: 'A new trivia game every day. Sixty seconds, three seconds a question, one crown.',
   },
   welcome: {
     hello: 'Hi! I’m Sunny.',
-    tagline: 'Meridian is a quick trivia game for everyone. A new game every day, and you can play right now.',
+    tagline: 'Welcome to Glint! It’s a quick trivia game for everyone. A new game every day, and you can play right now.',
     letsGo: 'Let’s go',
     steps: [
       { title: '60 seconds', text: 'Every game is one minute long. Answer as many questions as you can.' },
