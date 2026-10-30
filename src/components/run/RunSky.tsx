@@ -55,6 +55,7 @@ export function RunSky({
   mood,
   floor = 0,
   ceiling = 0,
+  dawn = 0.12,
   children,
 }: {
   day: SharedValue<number>;
@@ -70,10 +71,12 @@ export function RunSky({
   floor?: number;
   /** px kept clear at the top (the top bar) */
   ceiling?: number;
+  /** how far Sunny has risen before the run starts: 0.12 peeks over the edge, 0.85 sits awake on the horizon */
+  dawn?: number;
   children?: ReactNode;
 }) {
   const focused = useIsFocused();
-  const rise = useSharedValue(0.12);
+  const rise = useSharedValue(dawn);
   useEffect(() => {
     if (phase === 'intro') rise.set(withTiming(1, { duration: 2200, easing: Easing.out(Easing.cubic) }));
     else if (phase !== 'ready' && phase !== 'starting') rise.set(1);

@@ -37,6 +37,21 @@ import { LightScope } from '@/theme/LightProvider';
 import { CANDY, CARD, LIGHTS, SIGNAL, SUNNY, WHITE } from '@/theme/palette';
 
 const BURST = [SUNNY.body, WHITE, SIGNAL.correct, CANDY.pink.bg];
+/** widest the question column grows beside the sky */
+const STAGE_MAX = 760;
+/** space between the sky and the question column, and the least beside it */
+const STAGE_GAP = 32;
+
+/**
+ * On a big screen the question column sits in the middle of the window, and the
+ * sky takes the room to its left (never less than 30% of the width, so Sunny has room to travel).
+ */
+function stageColumn(width: number) {
+  const skyMin = Math.max(340, Math.round(width * 0.3));
+  const column = Math.min(STAGE_MAX, width - skyMin - STAGE_GAP * 2);
+  const left = Math.max(Math.round((width - column) / 2), skyMin + STAGE_GAP);
+  return { sky: left - STAGE_GAP, right: width - left - column };
+}
 
 export default function RunRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -169,11 +184,17 @@ function RunScreen({ id }: { id: string }) {
   const split = layout.splitRun;
   // Short phones (SE, small Androids) get a lower sky and tighter tiles so all four answers fit.
   const short = !split && layout.height < 740;
-  const skyW = split ? Math.round(layout.width * 0.44) : layout.width;
+  // Tall enough beside the sky (tablets, desktops): the top bar runs across the whole window with bigger pills.
+  // A landscape phone keeps the phone's bar inside the sky, leaving the stage its height.
+  const barAcross = split && layout.height >= 560;
+  const stage = barAcross ? stageColumn(layout.width) : null;
+  const skyW = stage ? stage.sky : split ? Math.round(layout.width * 0.44) : layout.width;
   const skyH = split ? layout.height : short ? Math.round(Math.max(layout.height * 0.24, 150)) : Math.round(Math.min(Math.max(layout.height * 0.3, 210), 300));
   const sunSize = split ? Math.min(skyW * 0.22, 170) : short ? 54 : Math.min(layout.width * 0.17, 68);
-  const pill = split ? 60 : 44;
+  const pill = barAcross ? 56 : 44;
   const groundPad = split ? Math.max(32, layout.width * 0.04) : layout.gutter;
+  const stagePad = stage ? { paddingLeft: STAGE_GAP, paddingRight: stage.right } : { paddingHorizontal: groundPad };
+  const topBarH = insets.top + 10 + pill;
   const fact = practice && view.question && view.feedback ? practiceFact(view.question.qid) : undefined;
   const closed = competition ? phaseOf(competition, backend.now()) : null;
   const inRun = view.phase !== 'ready' && view.phase !== 'error';
@@ -201,9 +222,23 @@ function RunScreen({ id }: { id: string }) {
         lastDelta={view.lastDelta}
         size={pill}
         light={light}
-        compact={!split}
+        compact={!barAcross}
       />
     </>
+  );
+
+  const topBar = (
+    <RunTopBar
+      title={title}
+      practice={practice}
+      sound={sound}
+      onSound={() => setSound(!sound)}
+      onQuit={() => (inRun ? setQuitOpen(true) : router.back())}
+      canQuit={view.phase !== 'sunset'}
+    >
+      {/* Once the run starts, the clock and score take the title's place. */}
+      {inRun && view.phase !== 'sunset' ? hud : null}
+    </RunTopBar>
   );
 
   return (
@@ -224,31 +259,16 @@ function RunScreen({ id }: { id: string }) {
           sunSize={sunSize}
           phase={view.phase}
           mood={asleep ? 'happy' : mood}
-          floor={split ? pill + 40 : Math.round(sunSize * 0.34)}
-          ceiling={insets.top + (split ? 60 : 58)}
+          floor={split ? insets.bottom + Math.round(sunSize * 0.5) : Math.round(sunSize * 0.34)}
+          ceiling={split ? topBarH + 20 : insets.top + 58}
+          dawn={split ? 0.85 : undefined}
         >
-          <View style={{ flex: 1, paddingTop: insets.top + 10, paddingHorizontal: split ? groundPad * 0.7 : layout.gutter, paddingBottom: 14 }}>
-            <RunTopBar
-              title={title}
-              practice={practice}
-              sound={sound}
-              onSound={() => setSound(!sound)}
-              onQuit={() => (inRun ? setQuitOpen(true) : router.back())}
-              canQuit={view.phase !== 'sunset'}
-            >
-              {/* On a phone the clock and score ride in the top bar, leaving the sky to the sun. */}
-              {!split && inRun && view.phase !== 'sunset' ? hud : null}
-            </RunTopBar>
-            <View style={{ flex: 1 }} />
-            {split && view.phase !== 'sunset' ? (
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>{hud}</View>
-            ) : null}
-          </View>
+          {barAcross ? null : <View style={{ paddingTop: insets.top + 10, paddingHorizontal: split ? groundPad * 0.7 : layout.gutter }}>{topBar}</View>}
         </RunSky>
 
         <View style={{ flex: 1 }}>
           {inRun ? (
-            <View style={{ paddingHorizontal: groundPad, paddingTop: split ? insets.top + 28 : 4 }}>
+            <View style={{ ...stagePad, paddingTop: barAcross ? topBarH + 24 : split ? insets.top + 28 : 4 }}>
               <PixelTimer eclipse={run.eclipse} color={light.sun} track="rgba(255, 255, 255, 0.4)" height={split ? 18 : 14} />
             </View>
           ) : null}
@@ -262,8 +282,8 @@ function RunScreen({ id }: { id: string }) {
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: split ? 'center' : 'flex-start',
-              paddingHorizontal: groundPad,
-              paddingTop: split ? 24 : 14,
+              ...stagePad,
+              paddingTop: barAcross && !inRun ? topBarH + 24 : split ? 24 : 14,
               paddingBottom: insets.bottom + 18,
               gap: 16,
             }}
@@ -317,11 +337,18 @@ function RunScreen({ id }: { id: string }) {
           </ScrollView>
           {/* The countdown and the last word take the stage where the question will be (or was). */}
           {view.phase === 'intro' || view.phase === 'sunset' ? (
-            <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: '30%', alignItems: 'center', justifyContent: 'center' }}>
+            <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: '30%', ...stagePad, alignItems: 'center', justifyContent: 'center' }}>
               {view.phase === 'intro' ? <IntroCountdown size={split ? 170 : 128} /> : <SunsetTitle size={split ? 130 : 96} />}
             </View>
           ) : null}
         </View>
+
+        {/* On a wide screen the bar runs across both halves, so every control sits at the window's edges. */}
+        {barAcross ? (
+          <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: 0, paddingTop: insets.top + 10, paddingHorizontal: Math.max(24, layout.width * 0.025) }}>
+            {topBar}
+          </View>
+        ) : null}
 
         <Sheet visible={quitOpen} onClose={() => setQuitOpen(false)} title={copy.run.quitTitle}>
           <T v="body" muted>
