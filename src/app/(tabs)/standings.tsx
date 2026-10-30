@@ -90,7 +90,7 @@ function Board({ competition: c, view, todayKey }: { competition: Competition; v
   return (
     <Page bottomPad={showBar ? 120 : 48} overlay={showBar && board ? <MyRankBar board={board} /> : null}>
       <Head>
-        <title>{view === 'winners' ? 'Winners — Meridian' : `Ranks: ${s.title} — Meridian`}</title>
+        <title>{view === 'winners' ? 'Winners — Glint!' : `Ranks: ${s.title} — Glint!`}</title>
       </Head>
       <Container style={{ gap: 16, maxWidth: 820 }}>
         <PopIn>

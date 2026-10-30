@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generates every binary asset Meridian ships with — no design tools, no
+ * Generates every binary asset Glint! ships with — no design tools, no
  * dependencies. PNGs are rasterised with 4×4 supersampling; sounds are
  * synthesised into 16-bit mono WAV.
  *
@@ -139,7 +139,7 @@ function sky(height) {
 }
 
 /**
- * Sunny, the Meridian mark (src/components/brand/Mark.tsx), on a 100-unit
+ * Sunny, the Glint! mark (src/components/brand/Mark.tsx), on a 100-unit
  * grid scaled to `size` px and centred at (cx, cy). `face: false` draws the
  * silhouette only (Android's monochrome icon).
  */

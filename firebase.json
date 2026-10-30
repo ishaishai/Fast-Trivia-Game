@@ -1,7 +1,7 @@
 {
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": ["firebase.json", "**/.*"],
     "cleanUrls": true,
     "headers": [
       {
@@ -24,7 +24,7 @@
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       }
     ],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+    "rewrites": [{ "source": "!/@(assets|_expo)/**", "destination": "/index.html" }]
   },
   "firestore": {
     "rules": "firestore.rules",

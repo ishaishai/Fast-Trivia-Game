@@ -1,5 +1,5 @@
 {
-  "name": "meridian-functions",
+  "name": "glint-functions",
   "private": true,
   "main": "lib/index.js",
   "engines": {
@@ -8,7 +8,7 @@
   "scripts": {
     "build": "node build.mjs",
     "typecheck": "tsc --noEmit",
-    "serve": "npm run build && firebase emulators:start --project demo-meridian --only auth,firestore,functions",
+    "serve": "npm run build && firebase emulators:start --project demo-glint --only auth,firestore,functions",
     "deploy": "firebase deploy --only functions"
   },
   "dependencies": {

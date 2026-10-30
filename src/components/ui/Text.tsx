@@ -21,7 +21,7 @@ export const plainText = (children: ReactNode): string =>
     .filter((c) => typeof c === 'string' || typeof c === 'number')
     .join('');
 
-/** Every piece of text in Meridian goes through here, so the type scale stays one system. */
+/** Every piece of text in Glint! goes through here, so the type scale stays one system. */
 export function T({ v = 'body', color, muted, align, upper, size, fit, style, children, ...rest }: TProps) {
   const { type } = useLayout();
   const light = useLight();

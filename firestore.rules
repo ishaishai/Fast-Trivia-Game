@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Meridian: clients read, the server writes.
+// Glint! Clients read, the server writes.
 // Every write — profiles, registrations, runs, scores, crowns — goes through the
 // `api` Cloud Function, which validates it against the shared rules engine.
 service cloud.firestore {

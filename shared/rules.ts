@@ -1,5 +1,5 @@
 /**
- * The rules of Meridian — the single source of truth for the app, the offline
+ * The rules of Glint! — the single source of truth for the app, the offline
  * mock server and the Cloud Functions.
  */
 export const RULES = {

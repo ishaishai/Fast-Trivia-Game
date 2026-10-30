@@ -37,7 +37,7 @@ import type {
 } from '../../shared/types';
 
 /**
- * Server-side Meridian. Every rule lives in ../shared and is identical to
+ * Server-side Glint! Every rule lives in ../shared and is identical to
  * the offline mock; this file only adds persistence, transactions and the
  * things a server must own: identity, the clock, and the crown.
  */

@@ -2,7 +2,7 @@
 /**
  * End-to-end check of the real server against the local emulators.
  *   npm run smoke:firebase
- * (runs: firebase emulators:exec --project demo-meridian --only auth,firestore,functions "node scripts/smoke-firebase.mjs")
+ * (runs: firebase emulators:exec --project demo-glint --only auth,firestore,functions "node scripts/smoke-firebase.mjs")
  */
 import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth, signInAnonymously } from 'firebase/auth';
@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
 
-const app = initializeApp({ apiKey: 'demo-key', projectId: 'demo-meridian', appId: 'demo-app' });
+const app = initializeApp({ apiKey: 'demo-key', projectId: 'demo-glint', appId: 'demo-app' });
 const auth = getAuth(app);
 const db = getFirestore(app);
 const fns = getFunctions(app, 'europe-west1');
@@ -45,7 +45,7 @@ const expectError = async (fn, code, label) => {
   }
 };
 
-console.log('Meridian server smoke test');
+console.log('Glint! server smoke test');
 const { user } = await signInAnonymously(auth);
 check(Boolean(user.uid), 'anonymous sign-in');
 

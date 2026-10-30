@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Meridian",
-    "slug": "meridian",
-    "scheme": "meridian",
+    "name": "Glint!",
+    "slug": "glint",
+    "scheme": "glint",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -10,10 +10,10 @@
     "backgroundColor": "#6B3BEA",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ishaishai.meridian"
+      "bundleIdentifier": "com.ishaishai.glint"
     },
     "android": {
-      "package": "com.ishaishai.meridian",
+      "package": "com.ishaishai.glint",
       "adaptiveIcon": {
         "backgroundColor": "#6B3BEA",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,8 +26,8 @@
       "output": "single",
       "bundler": "metro",
       "favicon": "./assets/favicon.png",
-      "name": "Meridian — quick trivia for everyone",
-      "shortName": "Meridian",
+      "name": "Glint!: Daily Trivia",
+      "shortName": "Glint!",
       "description": "A new trivia game every day. Sixty seconds, three seconds a question, one crown.",
       "themeColor": "#6B3BEA",
       "backgroundColor": "#6B3BEA"

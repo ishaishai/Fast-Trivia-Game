@@ -22,9 +22,9 @@ export default function TabsLayout() {
           tabBar={() => null}
           screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: light.field } }}
         >
-          <Tabs.Screen name="index" options={{ title: 'Meridian — Play' }} />
-          <Tabs.Screen name="standings" options={{ title: 'Ranks — Meridian' }} />
-          <Tabs.Screen name="you" options={{ title: 'Me — Meridian' }} />
+          <Tabs.Screen name="index" options={{ title: 'Glint! — Play' }} />
+          <Tabs.Screen name="standings" options={{ title: 'Ranks — Glint!' }} />
+          <Tabs.Screen name="you" options={{ title: 'Me — Glint!' }} />
         </Tabs>
         {topNav ? <TopNav /> : <TabBar />}
       </View>

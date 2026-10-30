@@ -53,7 +53,7 @@ import type {
 import { REGULARS } from './names';
 import { bestRival, countField, fieldFor, rivalRow } from './rivals';
 
-const STORAGE_KEY = 'meridian:mock:v1';
+const STORAGE_KEY = 'glint:mock:v1';
 const lookup = lookupFor(BANK);
 const STALE_RUN_MS = 10 * 60_000;
 

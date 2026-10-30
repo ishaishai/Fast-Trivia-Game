@@ -35,7 +35,7 @@ export const useSettings = create<SettingsState>()(
       setLightOverride: (lightOverride) => set({ lightOverride }),
     }),
     {
-      name: 'meridian:settings:v1',
+      name: 'glint:settings:v1',
       storage: createJSONStorage(() => AsyncStorage),
     },
   ),

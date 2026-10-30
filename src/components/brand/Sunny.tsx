@@ -21,7 +21,7 @@ export type Mood = 'happy' | 'wow' | 'worried' | 'sleepy' | 'proud';
 const FACE = SUNNY.face;
 
 /**
- * Sunny, Meridian's sun: rays that turn, eyes that blink, a face that
+ * Sunny, the game's sun: rays that turn, eyes that blink, a face that
  * reacts. Decorative — screen readers skip it.
  */
 export function Sunny({
