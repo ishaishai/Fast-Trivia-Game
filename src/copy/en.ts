@@ -137,7 +137,7 @@ export const copy = {
     motion: 'Animations',
     motionHint: '“Less” keeps the timer moving and calms everything else down.',
     relaxed: 'Slower practice',
-    relaxedHint: '6 seconds a question in practice games. Real games are always 3.',
+    relaxedHint: '10 seconds a question in practice games. Real games are always 5.',
     server: 'Server',
     preview: 'Time machine',
     previewHint: 'Move the offline server’s clock to see games open and crowns land.',

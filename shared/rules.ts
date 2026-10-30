@@ -8,7 +8,7 @@ export const RULES = {
   /** Every question gives you five seconds. */
   QUESTION_MS: 5_000,
   /** Practice can be relaxed for accessibility. Never used in ranked play. */
-  RELAXED_QUESTION_MS: 6_000,
+  RELAXED_QUESTION_MS: 10_000,
   /** Skips per day — one for every hour — shared across every competition. */
   SKIPS_PER_DAY: 24,
 

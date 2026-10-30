@@ -9,7 +9,7 @@ interface SettingsState {
   sound: boolean;
   haptics: boolean;
   motion: MotionPref;
-  /** Practice only: six seconds a question instead of three. */
+  /** Practice only: ten seconds a question instead of five. */
   relaxedPractice: boolean;
   /** Preview builds can pin a light state for review. */
   lightOverride: LightState | null;
