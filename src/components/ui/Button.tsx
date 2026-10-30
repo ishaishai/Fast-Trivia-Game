@@ -3,13 +3,13 @@ import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { onCard, useLight } from '@/theme/LightProvider';
-import { useLayout } from '@/theme/layout';
 import { springs, useMotionOK } from '@/theme/motion';
 import { LIPS, WHITE } from '@/theme/palette';
 import { lip as LIP } from '@/theme/shape';
 import { Icon, type IconName } from '../icons';
 import { Float, Pulse } from '../motion/Playful';
 import { Tap, type TapState } from './Tap';
+import { T } from './Text';
 
 type Variant = 'sun' | 'ink' | 'ghost';
 type Size = 'xl' | 'l' | 'm' | 's';
@@ -124,13 +124,12 @@ export function Button({
   );
 }
 
+/** One line that shrinks (to 70%) rather than lose the end of a word on a narrow screen. */
 function Label({ label, size, color }: { label: string; size: Size; color: string }) {
-  const { type } = useLayout();
-  const fontSize = FONT[size];
   return (
-    <Animated.Text numberOfLines={1} style={[type.button, { fontSize, lineHeight: Math.round(fontSize * 1.25), color, flexShrink: 1 }]}>
+    <T v="button" size={FONT[size]} color={color} fit={0.7} style={{ flexShrink: 1 }}>
       {label}
-    </Animated.Text>
+    </T>
   );
 }
 

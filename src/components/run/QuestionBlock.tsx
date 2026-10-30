@@ -30,6 +30,7 @@ export function QuestionBlock({
   onAnswer,
   onCorrect,
   wide,
+  compact,
   fact,
 }: {
   question: PublicQuestion | null;
@@ -39,6 +40,8 @@ export function QuestionBlock({
   onAnswer: (i: number) => void;
   onCorrect?: (rect: { x: number; y: number; width: number; height: number }) => void;
   wide: boolean;
+  /** a short phone: smaller type and tiles */
+  compact?: boolean;
   fact?: string;
 }) {
   const shown = useSharedValue(0);
@@ -53,13 +56,14 @@ export function QuestionBlock({
   if (!question) return <View style={{ flex: 1 }} />;
   const n = question.options.length;
   const enabled = phase === 'live';
-  const textSize = question.text.length <= 34 ? (wide ? 40 : 28) : question.text.length <= 60 ? (wide ? 34 : 24) : wide ? 30 : 21;
+  const len = question.text.length;
+  const textSize = wide ? (len <= 34 ? 40 : len <= 60 ? 34 : 30) : compact ? (len <= 34 ? 23 : len <= 60 ? 20 : 18) : len <= 34 ? 28 : len <= 60 ? 24 : 21;
   const pairs = n === 2 || (wide && n === 4);
   const rows: number[][] = pairs ? (n === 2 ? [[0, 1]] : [[0, 1], [2, 3]]) : question.options.map((_, i) => [i]);
 
   return (
-    <Animated.View style={[{ gap: wide ? 20 : 14 }, block]} key={questionKey}>
-      <View style={{ backgroundColor: CARD.field, borderRadius: 26, padding: wide ? 28 : 18, gap: 12, boxShadow: '0px 6px 0px 0px rgba(34, 27, 69, 0.18)' }}>
+    <Animated.View style={[{ gap: wide ? 20 : compact ? 10 : 14 }, block]} key={questionKey}>
+      <View style={{ backgroundColor: CARD.field, borderRadius: 26, padding: wide ? 28 : compact ? 14 : 18, gap: compact ? 8 : 12, boxShadow: '0px 6px 0px 0px rgba(34, 27, 69, 0.18)' }}>
         <CardScope>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <Chip tone="sun">{`Q${question.seq + 1}`}</Chip>
@@ -77,7 +81,7 @@ export function QuestionBlock({
           </T>
         </CardScope>
       </View>
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: compact ? 4 : 8 }}>
         {rows.map((row, r) => (
           <View key={r} style={{ flexDirection: row.length > 1 ? 'row' : 'column', gap: 10 }}>
             {row.map((i) => (
@@ -93,6 +97,7 @@ export function QuestionBlock({
                 onPress={() => onAnswer(i)}
                 onCorrect={onCorrect}
                 tall={n === 2}
+                compact={compact}
                 grow={row.length > 1}
               />
             ))}

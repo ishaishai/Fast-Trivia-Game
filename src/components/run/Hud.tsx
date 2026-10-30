@@ -81,6 +81,11 @@ export function RunClock({ read, phase, size }: { read: () => number; phase: Run
 }
 
 /** Score with a star, the +3 / −1 that just landed, your streak and live rank. */
+/**
+ * Score with a star and the +3 / −1 that just landed. In the roomy layout a
+ * streak and live-rank row sits above it; on a phone (`compact`) the streak
+ * is a badge on the pill and the rank waits for the results.
+ */
 export const RunScore = forwardRef<
   ComponentRef<typeof View>,
   {
@@ -91,30 +96,14 @@ export const RunScore = forwardRef<
     lastDelta: { value: number; key: number } | null;
     size: number;
     light: Light;
+    compact?: boolean;
   }
->(function RunScore({ score, rank, rankDelta, streak, lastDelta, size }, ref) {
+>(function RunScore({ score, rank, rankDelta, streak, lastDelta, size, compact }, ref) {
+  const extras = !compact && (streak >= 3 || rank !== null);
   return (
-    <View style={{ alignItems: 'flex-end' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {/* Hung off the pill so a +3 never shoves the layout about. */}
-        {lastDelta ? (
-          <View pointerEvents="none" style={{ position: 'absolute', right: '100%', marginRight: 8, top: 0, bottom: 0, justifyContent: 'center' }}>
-            <DeltaPop key={lastDelta.key} value={lastDelta.value} />
-          </View>
-        ) : null}
-        <View ref={ref} collapsable={false} style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: size, paddingLeft: size * 0.24, paddingRight: size * 0.34 }]}>
-          <Bump trigger={lastDelta?.key ?? 0} good={(lastDelta?.value ?? 0) > 0}>
-            <Icon name="star" color={SUNNY.body} size={size * 0.56} strokeWidth={2} filled />
-          </Bump>
-          <Odometer
-            value={signed(score)}
-            accessibilityLabel={`${score} points`}
-            style={{ fontFamily: FONTS.num, fontSize: size * 0.5, lineHeight: size * 0.62, color: CARD.ink }}
-          />
-        </View>
-      </View>
-      {streak >= 3 || rank !== null ? (
-        <View style={{ position: 'absolute', top: size + 8, right: 0, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+    <View style={{ alignItems: 'flex-end', gap: 8 }}>
+      {extras ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {streak >= 3 ? (
             <View style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 4, height: 26, paddingHorizontal: 10, backgroundColor: TINTS.peach }]}>
               <Icon name="fire" color={SIGNAL.warn} size={14} filled />
@@ -133,6 +122,36 @@ export const RunScore = forwardRef<
           ) : null}
         </View>
       ) : null}
+      <View>
+        <View ref={ref} collapsable={false} style={[PILL, { flexDirection: 'row', alignItems: 'center', gap: 8, height: size, paddingLeft: size * 0.24, paddingRight: size * 0.34 }]}>
+          <Bump trigger={lastDelta?.key ?? 0} good={(lastDelta?.value ?? 0) > 0}>
+            <Icon name="star" color={SUNNY.body} size={size * 0.56} strokeWidth={2} filled />
+          </Bump>
+          <Odometer
+            value={signed(score)}
+            accessibilityLabel={`${score} points`}
+            style={{ fontFamily: FONTS.num, fontSize: size * 0.5, lineHeight: size * 0.62, color: CARD.ink }}
+          />
+        </View>
+        {compact && streak >= 3 ? (
+          <View
+            accessible
+            accessibilityLabel={copy.run.streak(streak)}
+            style={{ position: 'absolute', top: -8, left: -10, flexDirection: 'row', alignItems: 'center', gap: 2, height: 24, paddingHorizontal: 7, borderRadius: 12, backgroundColor: TINTS.peach, borderWidth: 2, borderColor: WHITE }}
+          >
+            <Icon name="fire" color={SIGNAL.warn} size={12} filled />
+            <T v="label" color={TINTS.onPeach} style={{ fontSize: 12, lineHeight: 15 }}>
+              {String(streak)}
+            </T>
+          </View>
+        ) : null}
+        {/* The +3 pops out of the score and floats off into the sky; it never pushes the layout or covers the clock. */}
+        {lastDelta ? (
+          <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+            <DeltaPop key={lastDelta.key} value={lastDelta.value} lift={compact ? size : -size} />
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 });
@@ -149,14 +168,16 @@ function Bump({ trigger, good, children }: { trigger: number; good: boolean; chi
   return <Animated.View style={style}>{children}</Animated.View>;
 }
 
-function DeltaPop({ value }: { value: number }) {
+function DeltaPop({ value, lift }: { value: number; lift: number }) {
   const p = useSharedValue(0);
   useEffect(() => {
     p.set(withSequence(withSpring(1, springs.pop), withDelay(420, withTiming(2, { duration: 380 }))));
   }, [p]);
+  // Out of the pill by `lift` (down on a phone, up where there's sky above), a beat there, then away and gone.
+  const away = Math.sign(lift) * 18;
   const style = useAnimatedStyle(() => ({
     opacity: p.value <= 1 ? Math.min(1, p.value * 1.5) : 2 - p.value,
-    transform: [{ translateY: p.value > 1 ? -(p.value - 1) * 22 : (1 - p.value) * 12 }, { scale: 0.5 + Math.min(1.1, p.value) * 0.5 }],
+    transform: [{ translateY: p.value <= 1 ? p.value * lift * 0.95 : lift * 0.95 + (p.value - 1) * away }, { scale: 0.5 + Math.min(1.1, p.value) * 0.5 }],
   }));
   const good = value > 0;
   return (

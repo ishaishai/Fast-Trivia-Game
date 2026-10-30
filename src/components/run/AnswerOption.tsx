@@ -28,6 +28,7 @@ export function AnswerOption({
   onPress,
   onCorrect,
   tall,
+  compact,
   order,
   total,
   grow,
@@ -42,6 +43,8 @@ export function AnswerOption({
   /** where the right answer is, in window coordinates, for the burst */
   onCorrect?: (rect: { x: number; y: number; width: number; height: number }) => void;
   tall?: boolean;
+  /** a short phone */
+  compact?: boolean;
   order: number;
   total: number;
   /** share the row's width (side-by-side layouts) */
@@ -99,7 +102,7 @@ export function AnswerOption({
   const lip = state === 'correct' || state === 'answer' ? SIGNAL.correctLip : state === 'wrong' ? SIGNAL.wrongLip : tile.lip;
   const fg = state === 'correct' || state === 'answer' ? SIGNAL.onCorrect : state === 'wrong' ? SIGNAL.onWrong : tile.fg;
   const outcome = state === 'correct' ? ', right' : state === 'wrong' ? ', wrong' : state === 'answer' ? ', the right answer' : '';
-  const minHeight = tall ? 120 : 60;
+  const minHeight = tall ? (compact ? 96 : 120) : compact ? 50 : 60;
 
   return (
     <Animated.View ref={box} collapsable={false} style={[grow ? { flex: 1 } : { alignSelf: 'stretch' }, animated]}>
@@ -150,7 +153,7 @@ export function AnswerOption({
                   </T>
                 )}
               </View>
-              <T v="title" color={fg} style={{ flexShrink: 1, fontFamily: FONTS.textBold, fontSize: tall ? 24 : 19, lineHeight: tall ? 29 : 24 }}>
+              <T v="title" color={fg} style={{ flexShrink: 1, fontFamily: FONTS.textBold, fontSize: tall ? 24 : compact ? 17 : 19, lineHeight: tall ? 29 : compact ? 21 : 24 }}>
                 {label}
               </T>
             </Animated.View>

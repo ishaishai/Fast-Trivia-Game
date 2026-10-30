@@ -58,6 +58,8 @@ function RunScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets();
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [quitOpen, setQuitOpen] = useState(false);
+  // Answers are never out of reach: if they don't fit, the ground scrolls even mid-question.
+  const [fits, setFits] = useState({ box: 0, content: 0 });
   const burst = useRef<BurstHandle>(null);
   const scorePill = useRef<ComponentRef<typeof View>>(null);
 
@@ -165,9 +167,11 @@ function RunScreen({ id }: { id: string }) {
   const kind = practice ? null : parseCompetitionId(id)?.kind;
   const title = practice ? copy.run.practice : kind ? SESSIONS[kind].title : 'Meridian';
   const split = layout.splitRun;
+  // Short phones (SE, small Androids) get a lower sky and tighter tiles so all four answers fit.
+  const short = !split && layout.height < 740;
   const skyW = split ? Math.round(layout.width * 0.44) : layout.width;
-  const skyH = split ? layout.height : Math.round(Math.min(Math.max(layout.height * 0.3, 210), 300));
-  const sunSize = split ? Math.min(skyW * 0.22, 170) : Math.min(layout.width * 0.17, 68);
+  const skyH = split ? layout.height : short ? Math.round(Math.max(layout.height * 0.24, 150)) : Math.round(Math.min(Math.max(layout.height * 0.3, 210), 300));
+  const sunSize = split ? Math.min(skyW * 0.22, 170) : short ? 54 : Math.min(layout.width * 0.17, 68);
   const pill = split ? 60 : 44;
   const groundPad = split ? Math.max(32, layout.width * 0.04) : layout.gutter;
   const fact = practice && view.question && view.feedback ? practiceFact(view.question.qid) : undefined;
@@ -197,6 +201,7 @@ function RunScreen({ id }: { id: string }) {
         lastDelta={view.lastDelta}
         size={pill}
         light={light}
+        compact={!split}
       />
     </>
   );
@@ -249,6 +254,11 @@ function RunScreen({ id }: { id: string }) {
           ) : null}
           <ScrollView
             style={{ flex: 1 }}
+            onLayout={(e) => {
+              const box = e.nativeEvent.layout.height;
+              setFits((f) => (Math.abs(f.box - box) < 1 ? f : { ...f, box }));
+            }}
+            onContentSizeChange={(_w, content) => setFits((f) => (Math.abs(f.content - content) < 1 ? f : { ...f, content }))}
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: split ? 'center' : 'flex-start',
@@ -257,7 +267,7 @@ function RunScreen({ id }: { id: string }) {
               paddingBottom: insets.bottom + 18,
               gap: 16,
             }}
-            scrollEnabled={!live}
+            scrollEnabled={!live || fits.content > fits.box + 1}
           >
             {view.reconnecting ? (
               <Chip tone="solid" icon="clock">
@@ -290,6 +300,7 @@ function RunScreen({ id }: { id: string }) {
                   onAnswer={run.answer}
                   onCorrect={celebrate}
                   wide={split}
+                  compact={short}
                   fact={fact}
                 />
                 <View style={{ flex: 1 }} />
